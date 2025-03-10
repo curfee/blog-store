@@ -1,4 +1,0 @@
-[submodule "theme/landscape"]
-	path = themes/landscape
-	url = https://github.com/curfee/hexo-theme-landscape.git
-
