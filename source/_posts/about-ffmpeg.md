@@ -10,6 +10,7 @@ tags:
 之后有尝试着点击exe文件,见没反应之后很快对其失去了兴趣,便很久没有管它了
 不过就在前几日,无意间刷到说是有款万能软件可以转换任何视频格式,竟发现up在用ffmpeg敲代码!!!
 这时才恍然大悟,原来[ffmpeg](https://ffmpeg.org/)是转换软件啊...
+***
 ## 初接触
 没想到当初觉得没用的exe竟然是靠命令行执行的
 ```powershell
@@ -17,22 +18,24 @@ E:\ffmpeg-2025-04-17-git-7684243fbe-full_build\bin\ffmpeg.exe(下载ffmpeg.exe�
 ```
 这便是最基础的ffmpeg转换指令,如果转换完之后发现文件没在同目录下<del>那就对了</del>是因为没给ffmpeg指定特定导出目录变导出到默认用户目录了
 这时便加上导出目录`指定目录+<output_files>`便可导出到指定目录
-***
+
 将ffmpeg的bin目录加入环境变量的path里面便可直接再命令行调用ffmpeg命令
 ```
 ffmpeg -v
 ```
-![如有返回版本信息便代表成功了](ffpeg_version.png)
+![如有返回版本信息便代表成功了](s_ffpeg_version.jpeg)
 ## 尝试理解
-把[官方文档(汉化过的)](https://ffmpeg.github.net.cn/ffmpeg.html)简单浏览后会发现各种格式的视频本质就是一个组合文件,内部含有视频流,音频流,字幕流等等等等
+把[官方文档(汉化过的)](https://ffmpeg.github.net.cn/ffmpeg.html)简单浏览后得出的结论是:
 
-而ffmpeg的作用就是将视频内的流进行重编码组合然后导出
+<b>各种格式的视频本质就是一个组合文件,内部含有视频流,音频流,字幕流等等等等
+而ffmpeg的作用就是将视频内的流进行重编码组合然后导出</b>
+
 目前选项分为输入选项(放输入文件前),输出选项(放输出文件前),和全局选项(放哪里都是全局生效)
 
-__<font color =" #15314b"><font size="2">~~由于文档讲的太多了~~</font>列几个认为较为重要的选项</font>__
+__<font color ="rgb(92, 24, 27)"><font size="2">~~由于文档讲的太多了~~</font>列几个认为较为重要的选项</font>__
 
 
-`-c`这个比较重要,这个明令可以单独选择流编码器或选择跳过解码,如要查询编码器名称可以使用`ffmpeg -codecs`去查找
+`-c`这个比较重要,这个明令可以单独选择流编码器或跳过编码,如要查询编码器名称可以使用`ffmpeg -codecs`去查找
 `-c:v`就是对单独的视频(video)流进行编码
 `-c:a`同理,但是这个视音频(audio)流
 `-c copy`就是跳过解码直接输出,可以搭配上两个选项进行单独跳过编码
@@ -54,7 +57,7 @@ __<font color =" #15314b"><font size="2">~~由于文档讲的太多了~~</font>�
 `-vf "crop=宽度:高度:[x坐标:y坐标]"`选定其位置进行剪切
 `-vf "transpose=方向"`就是旋转视频方向,使用0,1,2,3来控制视频的旋转方向
 更多命令可以在[官方文档](https://ffmpeg.org/ffmpeg-filters.html?spm=5176.28103460.0.0.28fe1db8VfLtEz)或使用`ffmpeg -filters`查找
-`-af`跟vf一样,只不过是对音频的滤镜<font color="#d9d9d9">~~如果赘述的话我还不如直接用Au~~</font>
+`-af`跟vf一样,只不过是对音频的滤镜<font color="#d9d9d9">如果再赘述的话还不如直接用Au演示</font>
 ***
 
 ## Dive in
@@ -99,7 +102,7 @@ for %%q in ("%old_vid%\*.%old_format%") do (
 pause
 ```
 <center><font size="1"><font color=" #9e9e9e">不得不说批处理对空格异常敏感</font></center>
-这里ffmpeg只有一行是本体,同时这行也决定了视频的质量,但由于这里没设置编码器质量和其他选项会导致其输出的视频质量出奇的低,~~我建议还是自己改改再用~~
+这里ffmpeg只有一行是本体,同时这行也决定了视频的质量,但由于这里没设置编码器质量和其他选项会导致其输出的视频质量出奇的低,<del>想用的话建议还是自己改改再用</del>
 
 另外提一嘴,写批处理脚本时用`^`便可以将那一大长串的字符串换行
 ```bat
@@ -115,6 +118,7 @@ ffmpeg也不止于转换视频文件,同样可以转化图片
 ffmpeg -i <inputimages> <outputimages>
 ```
 即可转换格式
+![即便如此其选项还是使用视频流的(video)](the_image_conversions.png)
 ***
 ### 最后
 虽然现在还是习惯使用格式工厂转小文件的格式,但ffmpeg却让我倍感兴奋,或是学新东西时的激动,抑或是如此专注的学习让自己感觉良好,已经很久没有这么投入的做一件事了
@@ -122,7 +126,7 @@ ffmpeg -i <inputimages> <outputimages>
 最后就放一个纯音视频结合的例子吧
 
 ```powershell
-ffmpeg -i "C:\Users\removable disk\Desktop\file_combie\spotifydown.com - The Last Time I Saw You - Housecat.mp3" -stream_loop -1 -i "C:\Users\removable disk\Desktop\file_combie\spr_1.webm" -b:v 640k -c:v hevc_nvenc -c:a libopus -vf "scale=1080:720 , deblock=1:5" -ss 00:00:00 -to 00:04:37 -b:a 78k -shortest -r 30 "C:\Users\removable disk\Desktop\file_combie\spring.mp4"
+ffmpeg -i "D:\ram\Desktop\file_combie\The Last Time I Saw You - Housecat.mp3" -stream_loop -1 -i "D:\ram\Desktop\file_combie\spr_1.webm" -b:v 640k -c:v hevc_nvenc -c:a libopus -vf "scale=1080:720 , deblock=1:5" -ss 00:00:00 -to 00:04:37 -b:a 78k -shortest -r 30 "C:\Users\removable disk\Desktop\spring.mp4"
 ```
 
 <center><font size="2">效果...好像还说的过去?</font></center>
