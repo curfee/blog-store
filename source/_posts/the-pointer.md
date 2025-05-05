@@ -15,6 +15,7 @@ one small step for me,one giant leap for C
 
 指针终究对我来还是太抽象了...就像当初理解模型布线一样
 只不过这次比布线更灵活,更复杂,复杂到我需要单独开篇文章帮我整理最近学到的东西
+***
 ## pointer = &address
 无论指针怎么变化,其本质就是存储其数据的地址,可难就难在数据类型变换莫测,很容易指针指着指着就迷了路...  
 但先不管那么多,把最最最基础的指针用法给写出来
@@ -29,6 +30,7 @@ printf("%d",*p);
 我个人认为需了解指针的话还需要理解一个重要的东西： <b>[解引](https://www.cnblogs.com/haruyuki/p/15683592.html)</b> 
 如上文所示,因为当p为指针的时候其存储的值是为数据i的地址,所以如果我们直接输出p的话会得到i的**虚拟内存**的地址,只需要添加`*`便可以将p指针所指向的数据,也就是i的地址转化成`i`所赋予的值,即`14`
 还有就是指向了,我认为指向这个说法很合理,但又机器抽象,总的来说指向就是指针存储了该值的地址(数组为头地址),这么一说是不是挺合理的,但是只要指针种类多起来就开始麻烦了,我个人还是更习惯理解指向为赋值,只不过这次赋予的是该值的地址罢了(个人习惯)
+***
 ## 指针的类型&&指针所指向的类型
 简单举栗
 ```c
@@ -110,7 +112,12 @@ int main(){
 
 ***
 ## 螺旋读取指针法
-难的讲完了,该讲讲轻松的话题了
+
+<p align ="center">
+    难的讲完了,该讲讲轻松的话题了
+    <img src ="readable.png" style ="max-width:90%; height:auto;">
+</p>
+
 这个读取法是偶然在探讨指针帖上看到的,[螺旋读取法](https://c-faq.com/decl/spiral.anderson.html)的读法似乎会比先又再左会好理解一点
 懒得手打了就直接拿这里面的例子来解释吧
 ```c
@@ -140,7 +147,16 @@ int main(){
 <b>Learning is a process of realizing how igorant you are</b>
 
 之后肯定还会有更多关于指针方面的讨论
+***
+参考:
+[https://www.reddit.com/r/C_Programming/comments/18ixoxr/best_pointers_explanation/](https://www.reddit.com/r/C_Programming/comments/18ixoxr/best_pointers_explanation/)
+[https://www.cnblogs.com/menkeyi/p/18679375](https://www.cnblogs.com/menkeyi/p/18679375)
+[【18分钟速通 指针函数指针数组数组☝️🤓】 https://www.bilibili.com/video/BV18gGezoEjV/?share_source=copy_web&vd_source=040ed217ed20932d28aa589416f9c281](https://www.bilibili.com/video/BV18gGezoEjV/?share_source=copy_web&vd_source=040ed217ed20932d28aa589416f9c281)
+[https://blog.csdn.net/soonfly/article/details/51131141](https://blog.csdn.net/soonfly/article/details/51131141)
 
-另外就是一些我再查找中偶然找到的一个有趣的网站
+另外就是我在上网查找资料中偶然找到的一个有趣的网站:
 [https://pointerpointer.com/](https://pointerpointer.com/)
-have good day (*^▽^*)
+
+
+<center><font color="#185a61"><b>本篇完-have good day~~(*^▽^*)</b></font></center>
+
