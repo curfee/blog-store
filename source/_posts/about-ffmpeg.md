@@ -32,10 +32,10 @@ ffmpeg -v
 
 目前选项分为输入选项(放输入文件前),输出选项(放输出文件前),和全局选项(放哪里都是全局生效)
 
-__<font color ="rgb(92, 24, 27)"><font size="2">~~由于文档讲的太多了~~</font>列几个认为较为重要的选项</font>__
+__<font color ="#5c181b"><font size="2">~~由于文档讲的太多了~~</font>列几个认为较为重要的选项</font>__
 
 
-`-c`这个比较重要,这个明令可以单独选择流编码器或跳过编码,如要查询编码器名称可以使用`ffmpeg -codecs`去查找
+`-c`这个比较重要,这个命令可以单独选择流编码器或跳过编码,如要查询编码器名称可以使用`ffmpeg -codecs`去查找
 `-c:v`就是对单独的视频(video)流进行编码
 `-c:a`同理,但是这个视音频(audio)流
 `-c copy`就是跳过解码直接输出,可以搭配上两个选项进行单独跳过编码
@@ -121,12 +121,12 @@ ffmpeg -i <inputimages> <outputimages>
 ![即便如此其选项还是使用视频流的(video)](the_image_conversions.png)
 ***
 ### 最后
-虽然现在还是习惯使用格式工厂转小文件的格式,但ffmpeg却让我倍感兴奋,或是学新东西时的激动,抑或是如此专注的学习让自己感觉良好,已经很久没有这么投入的做一件事了
+虽然现在还是习惯使用带UI的转格式软件,但ffmpeg却让我倍感兴奋,或是学新东西时的激动,抑或是如此专注的学习让自己感觉良好,已经很久没有这么投入的做一件事了
 
 最后就放一个纯音视频结合的例子吧
 
 ```powershell
-ffmpeg -i "D:\ram\Desktop\file_combie\The Last Time I Saw You - Housecat.mp3" -stream_loop -1 -i "D:\ram\Desktop\file_combie\spr_1.webm" -b:v 640k -c:v hevc_nvenc -c:a libopus -vf "scale=1080:720 , deblock=1:5" -ss 00:00:00 -to 00:04:37 -b:a 78k -shortest -r 30 "C:\Users\removable disk\Desktop\spring.mp4"
+ffmpeg -i "D:\ram\Desktop\file_combie\The Last Time I Saw You - Housecat.mp3" -stream_loop -1 -i "D:\ram\Desktop\file_combie\spr_1.webm" -b:v 640k -c:v hevc_nvenc -c:a libopus -vf "scale=1080:720 , deblock=1:5" -ss 00:00:00 -to 00:04:37 -b:a 78k -shortest -r 30 "C:\Users\LZTeam\Desktop\spring.mp4"
 ```
 
 <center><font size="2">效果...好像还说的过去?</font></center>

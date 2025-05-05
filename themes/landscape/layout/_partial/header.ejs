@@ -6,7 +6,7 @@
         <a href="<%- url_for() %>" id="logo"><%= config.title %></a>
       </h1>
       <% if (theme.subtitle || config.subtitle){ %>
-        <h2 id="subtitle-wrap">
+        <h2 id="subtitle-wrap" calss = “subtitle-switch”>
           <a href="<%- url_for() %>" id="subtitle"><%= theme.subtitle || config.subtitle %></a>
         </h2>
       <% } %>

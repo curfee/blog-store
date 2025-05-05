@@ -135,4 +135,9 @@
 
     $container.removeClass('mobile-nav-on');
   });
+
+  $(document).ready(function() {
+    $('.subtitle-switch').addClass('invisible');
+  });
+  
 })(jQuery);
