@@ -46,7 +46,8 @@ __<font color ="#5c181b"><font size="2">~~由于文档讲的太多了~~</font>�
 `-b:v 12800 -b:a 9600`则会得到一个来自千禧年的时空胶囊~~ 
 <p align ="center">
     <img src ="v128k_a96k_isbad.png" style="max-width:100%; height:auto;">
-    <font size="1"><del>事实上效果比千禧年还烂2333</del></font> </p align ="center">
+    <font size="1"><del>事实上效果比千禧年还烂2333</del></font> 
+    </p align ="center">
 
 `-ss`和`-t`分别为起始时间和持续时间,这样一来可以满足一些需要快速剪辑的场景 `-ss 00:01:00 -t 3`就是从一秒开始,之后视频持续三秒结束
 `-t`也可以替换为`-to`从而从持续时间变为结束时间
