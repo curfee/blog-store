@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>pointer | Lazy Team!</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="one small step for me,one giant leap for C            one torture for beginner">
+<meta property="og:type" content="article">
+<meta property="og:title" content="pointer">
+<meta property="og:url" content="http://example.com/2025/05/01/the-pointer/index.html">
+<meta property="og:site_name" content="Lazy Team!">
+<meta property="og:description" content="one small step for me,one giant leap for C            one torture for beginner">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="http://example.com/2025/05/01/the-pointer/point_address.png">
+<meta property="og:image" content="http://example.com/2025/05/01/the-pointer/complex_pointer.jpeg">
+<meta property="og:image" content="http://example.com/2025/05/01/the-pointer/confuse_goofyahh.jpg">
+<meta property="og:image" content="http://example.com/2025/05/01/the-pointer/it">
+<meta property="og:image" content="http://example.com/2025/05/01/the-pointer/readable.png">
+<meta property="article:published_time" content="2025-05-01T12:21:14.000Z">
+<meta property="article:modified_time" content="2025-05-06T05:28:10.000Z">
+<meta property="article:author" content="coffee">
+<meta property="article:tag" content="C">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2025/05/01/the-pointer/point_address.png">
+  
+    <link rel="alternate" href="/atom.xml" title="Lazy Team!" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/images/shellby9.ico">
+  
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Lazy Team!</a>
+      </h1>
+      
+        <h2 id="subtitle-wrap" calss = “subtitle-switch”>
+          <a href="/" id="subtitle">keeping foolish keeping ignore</a>
+        </h2>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-the-pointer" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2025/05/01/the-pointer/" class="article-date">
+  <time class="dt-published" datetime="2025-05-01T12:21:14.000Z" itemprop="datePublished">2025-05-01</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      pointer
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <script src="/assets/js/DPlayer.min.js"> </script><p>one small step for me,one giant leap for C </p>
+<p align="center">
+    <img src="/2025/05/01/the-pointer/point_address.png" style="max-width:100%; height:auto;">
+    <font size="1"><del>one torture for beginner</del></font> </p>
+<span id="more"></span>
+
+<h1 id="那天-人们终于回想起了被指针支配的恐惧…"><a href="#那天-人们终于回想起了被指针支配的恐惧…" class="headerlink" title="那天,人们终于回想起了被指针支配的恐惧…"></a>那天,人们终于回想起了被指针支配的恐惧…</h1><p>指针这个概念理解起来其实就是存储地址。可能因人而异吧,有人一遍过,有人怎么都绕不出来…<br><font size="1">我就是绕不出来的那个(</font></p>
+<p>指针终究对我来还是太抽象了…就像当初理解模型布线一样<br>只不过这次比布线更灵活,更复杂,复杂到我需要单独开篇文章帮我整理最近学到的东西</p>
+<hr>
+<h2 id="pointer-address"><a href="#pointer-address" class="headerlink" title="pointer &#x3D; &amp;address"></a>pointer &#x3D; &amp;address</h2><p>无论指针怎么变化,其本质就是存储其数据的地址,可难就难在数据类型变换莫测,很容易指针指着指着就迷了路…<br>但先不管那么多,把最最最基础的指针用法给写出来</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> i,*p;</span><br><span class="line">i = <span class="number">14</span>;</span><br><span class="line">p = &amp;i;</span><br><span class="line"><span class="built_in">printf</span>(<span class="string">&quot;%d&quot;</span>,*p);</span><br></pre></td></tr></table></figure>
+<p>这样子就得到了最基础的指针,该指针的输出值为<code>i</code><br>除此之外<br>我个人认为需了解指针的话还需要理解一个重要的东西： <b><a target="_blank" rel="noopener" href="https://www.cnblogs.com/haruyuki/p/15683592.html">解引</a></b><br>如上文所示,因为当p为指针的时候其存储的值是为数据i的地址,所以如果我们直接输出p的话会得到i的<strong>虚拟内存</strong>的地址,只需要添加<code>*</code>便可以将p指针所指向的数据,也就是i的地址转化成<code>i</code>所赋予的值,即<code>14</code><br>还有就是指向了,我认为指向这个说法很合理,但又极其抽象,总的来说指向就是指针存储了该值的地址(数组为头地址),这么一说是不是挺合理的,但是只要指针种类多起来就开始麻烦了,我个人还是更习惯理解指向为赋值,只不过这次赋予的是该值的地址罢了(个人习惯)</p>
+<hr>
+<h2 id="指针的类型-指针所指向的类型"><a href="#指针的类型-指针所指向的类型" class="headerlink" title="指针的类型&amp;&amp;指针所指向的类型"></a>指针的类型&amp;&amp;指针所指向的类型</h2><p>简单举栗</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> i,*p;</span><br></pre></td></tr></table></figure>
+<p>指针类型就是当定义一个指针变量(p)时<strong>所赋予的数据类型</strong> 所以<code>int*</code>也就是赋予了整数类型的指针<br>而指针所指向的类型则类似于解引一样解指针(*p)来指向<strong>指针所指的实际数据类型</strong>所以<code>int</code>就是指针<code>p</code>所存储的实际数据类型<br>这两个的作用就是检验指针的正确性,同时也证明了指针指向的内存区域的数据类型决定了该内存区域的大小<br>现在声明一个较为复杂的指针 </p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">int</span> *(*ptr)[<span class="number">4</span>]   </span><br></pre></td></tr></table></figure>
+<p>这个指针的意思是声明了一个ptr指针指向一个含有4个int *的指针数组<br>所以该指针类型就是<code>int *(*)[4]</code>也就是4个int *类型的指针数组组成<br>指针所指的类型为<code>int *[4]</code>也就是该指针所指的类型为4个含有int类型的指针数组</p>
+<p><b>其实指针类型就是把声明的值给去掉,指针所指向的类型就是把值旁边的指针给去掉</b></p>
+<p>现在再来看看这个</p>
+<p align="center">
+    <img src="/2025/05/01/the-pointer/complex_pointer.jpeg" alt="爱来自c社区♥" style="max-width:100%; height:auto;">
+</p>
+
+<p><code>void (*(*f[])())()</code>?!<br>先一层一层拆吧,其实上面已经有答案了,但是待我一步一步解释!<br>先从里面算起 <code>*f[]</code>的意思为f为数组,其内的每一个元素都是指针,<code>*(*f[])()</code>这个就很有趣了,这里的空括号相当于任何一个参数类型的指针,也就是说这时候就已转化为函数指针,其只接受空括号内指定函数类型,再套了层指针代表着该函数返回值是一个指针,然后又加了一个括号代表该返回指针又指向另一个函数,其返回类型为void也—就是不返回任何值</p>
+<p>简单来说:<b> <code>f</code>是一个函数指针数组，数组中的每一个元素都是指针指向某个函数,这些函数又返回一个函数指针,其返回 void类型的函数</b></p>
+<p align="center">
+    是不是已经绕晕了·?
+    <img src="/2025/05/01/the-pointer/confuse_goofyahh.jpg" alt="ahhhhh_____*Dissolve" style="max-width:100%; height:auto;">
+</p>
+
+<p>但是现在理清楚了其他的自然就好搞了<br>指针类型为<code>void(*(*[]))</code><br>指针所指的类型为<code>void(*([]))</code></p>
+<p>这下面的解释翻译一下就是:<br><strong>定义 f 为一个大小未指定的数组，该数组中的每个元素是指向返回值类型为 void 的函数的指针</strong></p>
+<p>还好这串”东西”实际上基本不会用到,追求代码可读性的话套个两三层就已经很多了,所以现实写代码时不需要考虑那么复杂的声明<font size="1"><del>给你乱指就老实了</del></font></p>
+<hr>
+<h2 id="函数指针"><a href="#函数指针" class="headerlink" title="函数指针"></a>函数指针</h2><p>上面就有提到函数指针这个概念,函数指针就是放弃了普通存储数值地址从而存储局部函数地址,注意的一点就是只有相同类型的函数才能传入,否则编译器会因为类型不符报错<br>另外一点就是只要局部变量是指针,那其返回(return)的值将会是该值的地址(或者指向地址的指针),这样子很利好其函数指针返回值是指针<br>举例举例</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span><span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> *<span class="title function_">chae</span> <span class="params">(<span class="type">int</span> a,<span class="type">char</span> b)</span>&#123;</span><br><span class="line">    <span class="type">int</span> *result = <span class="built_in">malloc</span>(<span class="number">4</span>*<span class="keyword">sizeof</span>(<span class="type">int</span>));<span class="comment">//不想成为野指针那就把该变量放进堆里面!这行的意思就是创建一个4*sizeod(int)=4*4=16字节的堆内存来保存数据</span></span><br><span class="line">    *result = a;<span class="comment">//把 a 的值复制到 result 所指向的内存空间中</span></span><br><span class="line">    <span class="keyword">return</span> result;<span class="comment">//这是指针变量,所以该返回值为地址,这个地方就是返回result指向的地址值</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">()</span>&#123;</span><br><span class="line">    <span class="type">int</span> *(*ptr[<span class="number">5</span>])(<span class="type">int</span>,<span class="type">char</span>);</span><br><span class="line">    ptr[<span class="number">0</span>] = chae;<span class="comment">//先和局部函赋上</span></span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> *ans = ptr[<span class="number">0</span>](<span class="number">3</span>,<span class="string">&#x27;w&#x27;</span>);<span class="comment">//因为返回值仍然为地址,所以需要用*ans来指向该地址</span></span><br><span class="line"></span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;%d&quot;</span>,*ans);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">free</span>(ans);<span class="comment">//再把这堆释放掉，因为又被*ans指向,所以需要释放ans内的地址内存</span></span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里的指针意思是:ptr是个数组指针,指针内的每个元素都是指针，每个指针数组元素都指向函数(也就是赋值这些函数的地址额)，类型只能为int和char,这些局部函数其返回值是一个指针<br>然后就把chae放进第一个元素里去,所得到的地址再变成指针,再用解引去把指针地址解出值来就是3<br>建议还是去看看<a target="_blank" rel="noopener" href="https://www.runoob.com/cprogramming/c-fun-pointer-callback.html">这个</a>所讲的指针函数</p>
+<p align="center">
+    <img src="/2025/05/01/the-pointer/it's_fine.jpg" alt="很显然我已经把自己绕进去了,无数个指针以及所指向的地址实在是乱" style="max-width:100%; height:auto;">
+</p>
+
+<hr>
+<h2 id="螺旋读取指针法"><a href="#螺旋读取指针法" class="headerlink" title="螺旋读取指针法"></a>螺旋读取指针法</h2><p align="center">
+    难的讲完了,该讲讲轻松的话题了
+    <img src="/2025/05/01/the-pointer/readable.png" style="max-width:90%; height:auto;">
+</p>
+
+<p>这个读取法是偶然在探讨指针帖上看到的,<a target="_blank" rel="noopener" href="https://c-faq.com/decl/spiral.anderson.html">螺旋读取法</a>的读法似乎会比先右再左会好理解一点<br>懒得手打了就直接拿这里面的例子来解释吧</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">     +--------------------+</span><br><span class="line">     | +---+              |</span><br><span class="line">     | |+-+|              |</span><br><span class="line">     | |^ ||              |</span><br><span class="line"><span class="type">char</span> *(*fp)( <span class="type">int</span>, <span class="type">float</span> *);</span><br><span class="line"> ^   ^ ^  ||              |</span><br><span class="line"> |   | +--+|              |</span><br><span class="line"> |   +-----+              |</span><br><span class="line"> +------------------------+</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>其本质就是从内向外依次读取,这个图就可以很好的展示fp对各种类型的结合顺序</p>
+<p>首先fp和括号结合,代表着优先级转换<br>然后<em>fp就是代表fp是一个指针<br>然后再和外面的(int,float</em>)就是fp的指针指向一个函数,其类型只能为int,float*<br>再和指针结合代表该指针函数的返回也是一个指针<br>最后再表示这个指针函数返回的指针所指向的类型为char</p>
+<p>怎样?是不是和先右再左的逻辑一样?没有说哪种更好,只是自己更倾向于这样理解:P</p>
+<hr>
+<h2 id="The-End"><a href="#The-End" class="headerlink" title="The End?"></a>The End?</h2><p>我必须承认的是我还没有完全理解指针和地址之间的理解,总有一天终我会逐渐理解一切</p>
+<p><b>Learning is a process of realizing how igorant you are</b></p>
+<p>之后肯定还会有更多关于指针方面的讨论</p>
+<hr>
+<p>参考:<br><a target="_blank" rel="noopener" href="https://www.reddit.com/r/C_Programming/comments/18ixoxr/best_pointers_explanation/">https://www.reddit.com/r/C_Programming&#x2F;comments&#x2F;18ixoxr&#x2F;best_pointers_explanation&#x2F;</a><br><a target="_blank" rel="noopener" href="https://www.cnblogs.com/menkeyi/p/18679375">https://www.cnblogs.com/menkeyi/p/18679375</a><br><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV18gGezoEjV/?share_source=copy_web&vd_source=040ed217ed20932d28aa589416f9c281">【18分钟速通 指针函数指针数组数组☝️🤓】 https://www.bilibili.com/video/BV18gGezoEjV/?share_source&#x3D;copy_web&amp;vd_source&#x3D;040ed217ed20932d28aa589416f9c281</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/soonfly/article/details/51131141">https://blog.csdn.net/soonfly/article/details/51131141</a></p>
+<p>另外就是我在上网查找资料中偶然找到的一个有趣的网站:<br><a target="_blank" rel="noopener" href="https://pointerpointer.com/">https://pointerpointer.com/</a></p>
+<center><font color="#185a61"><b>本篇完-have good day~~(*^▽^*)</b></font></center>
+
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2025/05/01/the-pointer/" data-id="cmcvhq83n000gcstq3of0h0y5" data-title="pointer" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/C/" rel="tag">C</a></li></ul>
+
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2025/05/14/14-3/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          14!
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2025/04/22/about-ffmpeg/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">ffmpeg初体验</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tags</h3>
+    <div class="widget">
+      <ul class="tag-list" itemprop="keywords"><li class="tag-list-item"><a class="tag-list-link" href="/tags/14/" rel="tag">14!</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/C/" rel="tag">C</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/grapic-design/" rel="tag">grapic_design</a></li><li class="tag-list-item"><a class="tag-list-link" href="/tags/hexo/" rel="tag">hexo</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Tag Cloud</h3>
+    <div class="widget tagcloud">
+      <a href="/tags/14/" style="font-size: 20px;">14!</a> <a href="/tags/C/" style="font-size: 10px;">C</a> <a href="/tags/grapic-design/" style="font-size: 10px;">grapic_design</a> <a href="/tags/hexo/" style="font-size: 15px;">hexo</a>
+    </div>
+  </div>
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/08/">August 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/06/">June 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/05/">May 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/04/">April 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/03/">March 2025</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2025/08/02/pointerII/">poitntnter</a>
+          </li>
+        
+          <li>
+            <a href="/2025/06/14/14-4/">14!</a>
+          </li>
+        
+          <li>
+            <a href="/2025/05/29/grapic-design/">色，平面与设计感(color,grapic and design)</a>
+          </li>
+        
+          <li>
+            <a href="/2025/05/14/14-3/">14!</a>
+          </li>
+        
+          <li>
+            <a href="/2025/05/01/the-pointer/">pointer</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2025 coffee<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>
