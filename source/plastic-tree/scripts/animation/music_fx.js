@@ -48,12 +48,53 @@
   };
   const PREFIX = 'mu--';
 
+  /* 音乐、耳语、按钮音效完整下载后才发送资源就绪事件。 */
+  const preloadedAudio = new Map();
+  window.__getPreloadedAudioURL = (url) => preloadedAudio.get(url) || url;
+  function reportAudioProgress(loaded, total, failed = 0) {
+    window.dispatchEvent(new CustomEvent('audio:load-progress', { detail: { loaded, total, failed } }));
+  }
+  async function preloadAudioAssets() {
+    const entries = [
+      ...tracks.map((track) => ({ url: `${CFG.dir}${track.n}${track.ext}`, track })),
+      ...wspTracks.map((track) => ({ url: `${CFG.wspDir}${track.n}${track.ext}`, track })),
+      { url: 'sound_effect/hover_snd.wav' },
+      { url: 'sound_effect/clicked_snd.wav' },
+    ];
+    const unique = [...new Map(entries.map((entry) => [entry.url, entry])).values()];
+    let loaded = 0, failed = 0;
+    reportAudioProgress(loaded, unique.length, failed);
+    await Promise.all(unique.map(async ({ url, track }) => {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 45000);
+      try {
+        const response = await fetch(url, { cache: 'force-cache', signal: controller.signal });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const blob = await response.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        preloadedAudio.set(url, objectUrl);
+        if (track) track.objectUrl = objectUrl;
+      } catch (error) {
+        failed++;
+        if (track) track.preloadFailed = true;
+        console.warn(`[music_fx] 音频预加载失败：${url}`, error.message);
+      } finally {
+        clearTimeout(timeout);
+        loaded++;
+        reportAudioProgress(loaded, unique.length, failed);
+      }
+    }));
+    tracks = tracks.filter((track) => !track.preloadFailed);
+    wspTracks = wspTracks.filter((track) => !track.preloadFailed);
+  }
+
   /* ---- 双层 ambience（叠化需要两个元素交替）+ whisper 独立元素 ---- */
   const layers = [new Audio(), new Audio()];
   layers.forEach((a) => { a.preload = 'auto'; });
   const wsp = new Audio();
   wsp.preload = 'auto';
   let cur = 0;                       // 当前 ambience 层索引
+  let crossfadeStarted = false;      // 防止 timeupdate 与 ended 同时触发下一首
 
   let tracks = [];                   // ambience 曲目 [{n, ext}...]
   let wspTracks = [];                // whisper 曲目 [{n, ext}...]
@@ -97,13 +138,14 @@
   /* ---- ambience：开播/继续（在当前层） ---- */
   function playTrack(t) {
     clearTimeout(wspTimer);
+    crossfadeStarted = false;
     state = 'playing';
     ui();
     const a = layers[cur];
     layers[1 - cur].pause();
     fadeTo(layers[1 - cur], 0, 60);
     fadeTo(a, 0, 1);                   // 作废旧渐变
-    a.src = CFG.dir + t.n + t.ext;
+    a.src = t.objectUrl || CFG.dir + t.n + t.ext;
     a.volume = 0;
     a.play().catch((e) => {
       console.warn('[music_fx] 自动播放被拦截，等待首次点击/按键：', e.message);
@@ -118,25 +160,48 @@
 
   /* ---- 曲目刷新：每次开播前重新探测（用户在页面打开期间往文件夹加曲也能捡起） ---- */
   async function refreshTracks() {
-    [tracks, wspTracks] = await Promise.all([
+    const [ambience, whispers] = await Promise.all([
       probe(CFG.dir, CFG.ext),
       probe(CFG.wspDir, CFG.wspExt),
     ]);
+    tracks = ambience.map((track) => ({
+      ...track,
+      objectUrl: preloadedAudio.get(`${CFG.dir}${track.n}${track.ext}`),
+    }));
+    wspTracks = whispers.map((track) => ({
+      ...track,
+      objectUrl: preloadedAudio.get(`${CFG.wspDir}${track.n}${track.ext}`),
+    }));
   }
 
   /* ---- ambience：叠化——当前曲剩余 ≤ xfade 时另一层叠加下一首 ---- */
-  layers.forEach((a, idx) => a.addEventListener('timeupdate', () => {
-    if (state !== 'playing' || layers[cur] !== a) return;
-    if (!isFinite(a.duration) || a.duration - a.currentTime > CFG.xfade / 1000) return;
+  function startCrossfade(a, idx) {
+    if (state !== 'playing' || layers[cur] !== a || crossfadeStarted || !tracks.length) return;
+    crossfadeStarted = true;
     const na = layers[1 - idx];
     const t = pick(tracks, 'amb', lastTrack);
-    na.src = CFG.dir + t.n + t.ext;
+    na.src = t.objectUrl || CFG.dir + t.n + t.ext;
     na.volume = 0;
-    na.play().catch(() => {});
+    na.play().catch((error) => {
+      console.warn('[music_fx] 下一首播放失败，回退到 ended 切歌：', error.message);
+      crossfadeStarted = false;
+    });
     fadeTo(na, CFG.volume, CFG.xfade);
     fadeTo(a, 0, CFG.xfade, () => a.pause());
     cur = 1 - idx;
-  }));
+  }
+  layers.forEach((a, idx) => {
+    a.addEventListener('timeupdate', () => {
+      if (!isFinite(a.duration) || a.duration - a.currentTime > CFG.xfade / 1000) return;
+      startCrossfade(a, idx);
+    });
+    // timeupdate 未能在曲尾前触发时，ended 仍负责启动下一首。
+    a.addEventListener('ended', () => {
+      if (state !== 'playing' || layers[cur] !== a || crossfadeStarted) return;
+      cur = idx;
+      playNext();
+    });
+  });
 
   /* ---- whisper：耳语层（仅音乐 playing 时；受 ⏸/▶ 控制） ---- */
   function scheduleWhisper(delay) {
@@ -146,7 +211,7 @@
   function playWhisper() {
     if (state !== 'playing' || !wspTracks.length) return;
     const t = pick(wspTracks, 'wsp', lastWsp);
-    wsp.src = CFG.wspDir + t.n + t.ext;
+    wsp.src = t.objectUrl || CFG.wspDir + t.n + t.ext;
     wsp.volume = 0;
     wsp.play().catch(() => scheduleWhisper());   // 策略拒绝/失败：静默后按原节奏重试
     fadeTo(wsp, CFG.wspVolume, CFG.wspFadeIn);
@@ -260,10 +325,8 @@
     ]);
     elPause = svgP ? document.getElementById('music-pause') : null;
     elPlay = svgR ? document.getElementById('music-play') : null;
-    [tracks, wspTracks] = await Promise.all([
-      probe(CFG.dir, CFG.ext),
-      probe(CFG.wspDir, CFG.wspExt),
-    ]);
+    await refreshTracks();
+    await preloadAudioAssets();
     if (!tracks.length) console.warn('[music_fx] ambience/ 下未探测到曲目');
     if (!wspTracks.length) console.warn('[music_fx] whisper/ 下未探测到耳语');
     bindClick();

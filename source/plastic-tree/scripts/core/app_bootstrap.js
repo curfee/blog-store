@@ -10,6 +10,7 @@
   const assets = [...images, background];
   let fetchStarted = 0, fetchDone = 0, lastNetworkActivity = Date.now();
   let shown = 0, musicReady = false, shanReady = false;
+  let audioLoaded = 0, audioTotal = 0, audioFailed = 0;
   let waitingForKey = false, starting = false;
   let releaseReady;
 
@@ -65,11 +66,23 @@
     });
   };
 
+  window.addEventListener('audio:load-progress', event => {
+    audioLoaded = event.detail?.loaded ?? audioLoaded;
+    audioTotal = event.detail?.total ?? audioTotal;
+    audioFailed = event.detail?.failed ?? audioFailed;
+    update();
+  });
+
   function update() {
     const loaded = assets.filter(image => image.complete).length;
     const imageRatio = assets.length ? loaded / assets.length : 1;
     const fetchRatio = fetchStarted ? fetchDone / fetchStarted : 0;
-    shown = Math.max(shown, Math.min(94, Math.round(94 * (imageRatio * .72 + fetchRatio * .28))));
+    const visualRatio = imageRatio * .72 + fetchRatio * .28;
+    // 未开始音频下载前最多显示 30%；之后进度随音频完成情况增长。
+    const loadRatio = audioTotal
+      ? visualRatio * .3 + (audioLoaded / audioTotal) * .7
+      : Math.min(.3, visualRatio * .3);
+    shown = Math.max(shown, Math.min(94, Math.round(94 * loadRatio)));
     bar.style.width = `${shown}%`;
     percent.textContent = `${shown}%`;
   }
@@ -93,7 +106,9 @@
       await new Promise(resolve => setTimeout(resolve, 100));
     }
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-    label.textContent = '资源加载完成 · 按任意键继续';
+    label.textContent = audioFailed
+      ? `音频加载完毕（${audioFailed} 项失败）· 按任意键继续`
+      : '资源加载完成 · 按任意键继续';
     shown = 100;
     bar.style.width = '100%';
     percent.textContent = '100%';

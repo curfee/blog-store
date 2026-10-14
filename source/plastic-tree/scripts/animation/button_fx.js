@@ -89,7 +89,11 @@
     const url = SFX[kind];
     if (!url) return;
     let a = sfxCache[url];
-    if (!a) { a = sfxCache[url] = new Audio(url); a.preload = 'auto'; }
+    if (!a) {
+      const source = window.__getPreloadedAudioURL?.(url) || url;
+      a = sfxCache[url] = new Audio(source);
+      a.preload = 'auto';
+    }
     const inst = a.paused ? a : a.cloneNode();
     inst.volume = SFX.volume;
     inst.play().catch(() => {});   // 自动播放策略拒绝时静默（见上注释）
