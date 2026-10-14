@@ -43,9 +43,14 @@
         try {
           let response = await fetch(`${dir}${n}${ext}`, { method: 'HEAD' });
           if (response.status === 405 || response.status === 501) response = await fetch(`${dir}${n}${ext}`);
-          if (response.ok) { hit = { n, ext }; break; }
-          if (response.status !== 404) return found;
-        } catch { return found; }
+          const type = (response.headers.get('content-type') || '').toLowerCase();
+          const isAudio = type.startsWith('audio/') || type === 'application/octet-stream';
+          if (response.ok && isAudio) { hit = { n, ext }; break; }
+          // Cloudflare 对不存在的文件可能返回 206 + HTML，不能只凭 response.ok 收录。
+          if (response.status === 404 || type.startsWith('text/html')) continue;
+          if (!response.ok) return found;
+          // 200/206 但 MIME 不是音频，视为不存在/错误页，不能加入播放列表。
+        } catch { /* 尝试当前编号的其他扩展名 */ }
       }
       if (!hit) break;
       found.push(hit);
@@ -71,6 +76,10 @@
             response = await fetch(url, { cache: 'force-cache' });
           }
           if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const type = (response.headers.get('content-type') || '').toLowerCase();
+          if (!(type.startsWith('audio/') || type === 'application/octet-stream')) {
+            throw new Error(`非音频响应：${type || 'Content-Type 缺失'}`);
+          }
         } catch (error) {
           failed++;
           if (track) track.preloadFailed = true;
@@ -147,15 +156,22 @@
           return;
         }
         if (current !== howl || token !== attempt) return;
-        state = 'idle'; ui();
-        console.warn('[music_fx] 播放未获浏览器授权或播放失败：', error);
-        armGestureStart();
+        const message = String(error?.message || error || '');
+        if (/not.?allowed|user.?gesture|autoplay/i.test(message)) {
+          state = 'idle'; ui();
+          console.warn('[music_fx] 浏览器阻止了自动播放，等待用户手势：', error);
+          armGestureStart();
+        } else {
+          state = 'idle'; ui();
+          console.error(`[music_fx] 音频无法播放：${track.n}${track.ext}`, error);
+          retryAnotherTrack(track);
+        }
       },
       onloaderror: (id, error) => {
         console.warn(`[music_fx] 音频加载失败：${track.n}${track.ext}`, error);
         const index = tracks.findIndex(item => item.n === track.n && item.ext === track.ext);
         if (index >= 0) tracks.splice(index, 1);
-        if (slot === 'current' && (state === 'starting' || state === 'playing') && tracks.length) playNextTrack();
+        if (slot === 'current' && (state === 'starting' || state === 'playing')) retryAnotherTrack(track);
         if (slot === 'next') {
           next = null;
           nextId = null;
@@ -170,6 +186,13 @@
     if (slot === 'current') currentId = id;
     else nextId = id;
     return howl;
+  }
+
+  function retryAnotherTrack(failedTrack) {
+    const index = tracks.findIndex(item => item.n === failedTrack.n && item.ext === failedTrack.ext);
+    if (index >= 0) tracks.splice(index, 1);
+    if (tracks.length) playTrack(pick(tracks, lastTrack));
+    else { state = 'idle'; ui(); }
   }
 
   let curIndex = 0;
@@ -257,9 +280,17 @@
 
   function startChain(manual = false) {
     if (state === 'playing' || state === 'starting' || (!manual && state === 'stopped')) return;
-    if (tracks.length) { playNextTrack(); return; }
-    if (manual) refreshTracks().then(() => { if (tracks.length && state !== 'stopped') playNextTrack(); });
+    if (tracks.length) { playNextTrack(); return Promise.resolve(); }
+    if (manual) return refreshTracks().then(() => {
+      if (tracks.length && state !== 'stopped') playNextTrack();
+    });
+    return Promise.resolve();
   }
+
+  window.addEventListener('app:starting', () => {
+    // 在“按任意键继续”对应的真实手势中立即调用 play()，避免等遮罩淡出后丢失手势授权。
+    startChain(true);
+  }, { capture: true });
 
   function inHit(clientX, clientY) {
     const stage = document.getElementById('stage');

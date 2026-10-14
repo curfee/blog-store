@@ -30,12 +30,14 @@
   window.addEventListener('keydown', event => {
     if (!waitingForKey || starting) return;
     event.preventDefault();
+    window.dispatchEvent(new Event('app:starting'));
     event.stopImmediatePropagation();
     startAfterReadyInput();
   }, true);
   window.addEventListener('pointerdown', event => {
     if (!waitingForKey || starting || event.button !== 0) return;
     event.preventDefault();
+    window.dispatchEvent(new Event('app:starting'));
     event.stopImmediatePropagation();
     startAfterReadyInput();
   }, true);
