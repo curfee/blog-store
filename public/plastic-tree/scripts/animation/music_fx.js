@@ -6,7 +6,7 @@
     fadeIn: 700, fadeOut: 120, xfade: 700,
     wspDir: 'whisper/', wspExt: ['.mp3', '.wav'], wspVolume: 0.26,
     wspFadeIn: 300, wspFadeOut: 200, wspGapMin: 7000, wspGapMax: 14000,
-    probeMax: 64, startDelay: TIMING.startDelay ?? 300,
+    ambienceCount: 20, whisperCount: 11, startDelay: TIMING.startDelay ?? 300,
     fallback: TIMING.fallback ?? 12000, hitPad: 14,
   };
   const NS = 'http://www.w3.org/2000/svg';
@@ -35,9 +35,9 @@
     }));
   }
 
-  async function probe(dir, exts) {
+  async function probe(dir, exts, maxNumber) {
     const found = [];
-    for (let n = 1; n <= CFG.probeMax; n++) {
+    for (let n = 1; n <= maxNumber; n++) {
       let hit = null;
       for (const ext of exts) {
         try {
@@ -168,10 +168,16 @@
         }
       },
       onloaderror: (id, error) => {
+        // pause/stop 后 Howler 的网络请求可能才返回；旧实例不能污染续播曲目表。
+        if (slot === 'current') {
+          if (current !== howl || token !== attempt || !['starting', 'playing'].includes(state)) return;
+        } else if (next !== howl || state !== 'playing') {
+          return;
+        }
         console.warn(`[music_fx] 音频加载失败：${track.n}${track.ext}`, error);
         const index = tracks.findIndex(item => item.n === track.n && item.ext === track.ext);
         if (index >= 0) tracks.splice(index, 1);
-        if (slot === 'current' && (state === 'starting' || state === 'playing')) retryAnotherTrack(track);
+        if (slot === 'current') retryAnotherTrack(track);
         if (slot === 'next') {
           next = null;
           nextId = null;
@@ -354,8 +360,8 @@
     const [pauseHost, playHost, ambience, whispers] = await Promise.all([
       inline('music-pause', SRC.pause),
       inline('music-play', SRC.play),
-      probe(CFG.dir, CFG.ext),
-      probe(CFG.wspDir, CFG.wspExt),
+      probe(CFG.dir, CFG.ext, CFG.ambienceCount),
+      probe(CFG.wspDir, CFG.wspExt, CFG.whisperCount),
     ]);
     elPause = pauseHost;
     elPlay = playHost;
@@ -377,13 +383,16 @@
       get wspTracks() { return wspTracks.slice(); }, get lastTrack() { return lastTrack; },
       get current() { return current; }, get currentTrack() { return currentTrack; },
       get currentId() { return currentId; }, get cur() { return curIndex; }, cfg: CFG,
-      playNext: playNextTrack, stopPlayback, playWhisper, refreshTracks: probe,
+      playNext: playNextTrack, stopPlayback, playWhisper, refreshTracks,
     };
     window.dispatchEvent(new Event('music:ready'));
   }
 
   function refreshTracks() {
-    return Promise.all([probe(CFG.dir, CFG.ext), probe(CFG.wspDir, CFG.wspExt)]).then(([ambience, whispers]) => {
+    return Promise.all([
+      probe(CFG.dir, CFG.ext, CFG.ambienceCount),
+      probe(CFG.wspDir, CFG.wspExt, CFG.whisperCount),
+    ]).then(([ambience, whispers]) => {
       tracks = ambience;
       wspTracks = whispers;
     });
