@@ -174,7 +174,14 @@
     if (state === 'playing') return;
     if (state === 'stopped' && !manual) return;
     const token = startToken;
-    await refreshTracks();             // 开播前重探曲目（用户中途加曲无需刷新页面）
+    // 用户手势触发时，必须在手势调用栈内调用 play()；不要先等待串行 HEAD 探测，
+    // 否则浏览器会丢失短暂的用户激活授权并拦截播放。已探测曲目先立即播放，之后后台刷新。
+    if (manual && tracks.length) {
+      playNext();
+      refreshTracks();
+      return;
+    }
+    await refreshTracks();             // 自动开播或初次无缓存时重新探测曲目
     if (token !== startToken || state === 'playing' ||
         (state === 'stopped' && !manual) || !tracks.length) return;
     playNext();
@@ -182,7 +189,7 @@
 
   /* ---- 自动播放被拦截时：首次 pointerdown/keydown 即开播（once） ---- */
   function armGestureStart() {
-    const go = () => { startChain(); };
+    const go = () => { startChain(true); };
     window.addEventListener('pointerdown', go, { once: true });
     window.addEventListener('keydown', go, { once: true });
   }
