@@ -421,18 +421,6 @@ body {
     display: block;
   }
 }
-/*** site: use shellby9.ico as nav icon ***/
-/* Show favicon image instead of the font-awesome bars for the main nav toggle */
-#main-nav-toggle {
-  background: url("/images/shellby9.ico") no-repeat center center;
-  background-size: 24px 24px;
-  width: 54px;
-  height: 54px;
-  padding: 0;
-}
-#main-nav-toggle span {
-  display: none;
-}
 #sub-nav {
   float: right;
   margin-right: -15px;

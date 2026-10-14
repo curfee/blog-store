@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="100%" height="100%" viewBox="0 0 2560 1440" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:affinity="https://www.affinity.studio/">
+  <defs>
+<linearGradient id="_Linear264" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" gradientTransform="matrix(813,0,0,813,4109,2775)"><stop offset="0" style="stop-color:rgb(70,70,70);stop-opacity:1"/><stop offset="0.18" style="stop-color:rgb(54,54,54);stop-opacity:1"/><stop offset="0.39" style="stop-color:rgb(38,38,38);stop-opacity:1"/><stop offset="1" style="stop-color:rgb(31,31,31);stop-opacity:1"/></linearGradient>
+<linearGradient id="_Linear263" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" gradientTransform="matrix(813,0,0,813,4109,2775)"><stop offset="0" style="stop-color:rgb(70,70,70);stop-opacity:1"/><stop offset="0.18" style="stop-color:rgb(54,54,54);stop-opacity:1"/><stop offset="0.39" style="stop-color:rgb(38,38,38);stop-opacity:1"/><stop offset="1" style="stop-color:rgb(31,31,31);stop-opacity:1"/></linearGradient>
+<linearGradient id="_Linear262" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" gradientTransform="matrix(0,505.585197,-14.498752,0,1315.177327,371.245019)"><stop offset="0" style="stop-color:black;stop-opacity:1"/><stop offset="1" style="stop-color:rgb(77,77,77);stop-opacity:1"/></linearGradient>
+  </defs>
+  <g transform="matrix(1,0,0,1,-2610,-1490)">
+    <g transform="matrix(1,0,0,1,2610,1490)">
+<g id="底面黑块">
+                            <g id="底面黑块1" affinity:id="底面黑块" transform="matrix(3.73913,0,0,0.33582,-3506.086957,1092.283889)">
+                                <rect x="935" y="288" width="690" height="640" style="fill:url(#_Linear262);"/>
+                            </g>
+                            <g id="路径动画线条" transform="matrix(1,0,0,1,-2649,-1490)">
+                                <path d="M4064,2822.538L4064,2822.536C4064,2796.283 4085.283,2775 4111.536,2775C4329.059,2775 5219,2775 5219,2775" style="fill:none;stroke:url(#_Linear263);stroke-width:24.98px;"/>
+                            </g>
+                            <g id="路径动画线条1" affinity:id="路径动画线条" transform="matrix(-1,0,0,1,5253,-1490)">
+                                <path d="M4064,2822.538L4064,2822.536C4064,2796.283 4085.283,2775 4111.536,2775C4329.059,2775 5219,2775 5219,2775" style="fill:none;stroke:url(#_Linear264);stroke-width:24.98px;"/>
+                            </g>
+                        </g>
+    </g>
+  </g>
+</svg>

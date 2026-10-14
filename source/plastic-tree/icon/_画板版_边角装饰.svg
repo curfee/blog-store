@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="100%" height="100%" viewBox="0 0 2560 1440" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:affinity="https://www.affinity.studio/">
+  <defs>
+<linearGradient id="_Linear272" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" gradientTransform="matrix(137.691226,-330.458942,137.691226,330.458942,2695.975441,2230.458942)"><stop offset="0" style="stop-color:rgb(68,107,103);stop-opacity:1"/><stop offset="1" style="stop-color:rgb(23,66,61);stop-opacity:0.13"/></linearGradient>
+<linearGradient id="_Linear271" x1="0" y1="0" x2="1" y2="0" gradientUnits="userSpaceOnUse" gradientTransform="matrix(137.691226,-330.458942,137.691226,330.458942,2695.975441,2230.458942)"><stop offset="0" style="stop-color:rgb(68,107,103);stop-opacity:1"/><stop offset="1" style="stop-color:rgb(23,66,61);stop-opacity:0.13"/></linearGradient>
+  </defs>
+  <g transform="matrix(1,0,0,1,-2610,-1490)">
+    <g transform="matrix(1,0,0,1,2610,1490)">
+<g id="边角装饰">
+                            <g transform="matrix(0.177063,0.177063,-0.073776,0.073776,-296.801955,2.441315)">
+                                <path d="M2780.333,2092L2807,2092L2807,2229.6L2780.333,2229.6L2780.333,2092ZM2780.333,2092L2723,2092L2723,2028L2780.333,2028L2780.333,2092ZM2807,1964L2833.667,1964L2833.667,2028L2807,2028L2807,1964Z" style="fill:url(#_Linear271);"/>
+                            </g>
+                            <g transform="matrix(-0.177063,0.177063,0.073776,0.073776,2855.670363,2.441315)">
+                                <path d="M2780.333,2092L2807,2092L2807,2229.6L2780.333,2229.6L2780.333,2092ZM2780.333,2092L2723,2092L2723,2028L2780.333,2028L2780.333,2092ZM2807,1964L2833.667,1964L2833.667,2028L2807,2028L2807,1964Z" style="fill:url(#_Linear272);"/>
+                            </g>
+                        </g>
+    </g>
+  </g>
+</svg>

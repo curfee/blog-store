@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 204 204" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:affinity="https://www.affinity.studio/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-miterlimit:1.5;">
+    <g transform="matrix(1,0,0,1,-3808.997015,-2200.848035)">
+        <g transform="matrix(1,0,0,1,2610,1490)">
+            <g id="树内动画圆" transform="matrix(1,0,0,1,-2610,-1474.789659)">
+                <circle cx="3910.635" cy="2287.276" r="96.486" style="fill:none;stroke:url(#_Radial1);stroke-width:5.72px;"/>
+            </g>
+        </g>
+    </g>
+    <defs>
+        <radialGradient id="_Radial1" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="matrix(-190.635385,0,-0,-190.635385,3910.635385,2376)"><stop offset="0" style="stop-color:rgb(225,255,0);stop-opacity:0"/><stop offset="0.49" style="stop-color:rgb(225,255,0);stop-opacity:0.26"/><stop offset="1" style="stop-color:rgb(225,255,0);stop-opacity:1"/></radialGradient>
+    </defs>
+</svg>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:,">
+<title>熔塑之树 · Plastic Tree v2</title>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  html, body { width: 100%; height: 100%; background: #000; overflow: hidden; }
+  body {
+    background-image: url('icon/背景图.webp');
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+  }
+  #loading-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: grid;
+    place-items: center;
+    background: rgba(0, 0, 0, 0.24);
+    -webkit-backdrop-filter: blur(9px);
+    backdrop-filter: blur(9px);
+    opacity: 1;
+    transition: opacity var(--loading-fade-duration, 650ms) ease;
+    cursor: default;
+  }
+  #loading-screen.is-ready { opacity: 0; pointer-events: none; }
+  .loading-box { width: min(320px, calc(100vw - 48px)); color: rgba(255,255,255,.86); text-align: center; }
+  .loading-label { margin-bottom: 14px; font: 12px/1.5 "Microsoft YaHei", sans-serif; letter-spacing: .18em; }
+  #loading-screen.is-waiting .loading-label {
+    margin-bottom: 20px;
+    color: #e1ff00;
+    font-size: 15px;
+    letter-spacing: .22em;
+    text-shadow: 0 0 14px rgba(225,255,0,.32);
+    animation: ready-pulse 1.8s ease-in-out infinite alternate;
+  }
+  @keyframes ready-pulse { from { opacity: .68; } to { opacity: 1; } }
+  .loading-track { height: 2px; overflow: hidden; background: rgba(255,255,255,.2); }
+  #loading-progress { width: 0; height: 100%; background: #e1ff00; box-shadow: 0 0 10px rgba(225,255,0,.7); transition: width 180ms ease; }
+  #loading-percent { margin-top: 9px; font: 11px/1.2 Consolas, monospace; color: rgba(255,255,255,.62); }
+  #stage {
+    position: absolute;
+    width: 2560px;
+    height: 1440px;
+    transform-origin: top left;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  /* 所有图层均为画板 1:1 抠图（全画布 2560×1440），z 序 = 画板文档顺序 */
+  #stage .el { position: absolute; left: 0; top: 0; width: 2560px; height: 1440px; }
+  #stage img { display: block; width: 100%; height: 100%; }
+
+  /* 音乐开关（music_fx.js 内联后接管显隐；内联前整体隐藏，防止画板灰底闪显） */
+  #stage #music-pause, #stage #music-play { visibility: hidden; }
+
+  /* 例外：这三层用用户导出的 webp，按画板包围盒定位（需双 id 提升优先级） */
+  #stage #quyu-l { left: 26.3px;   top: -56.9px; width: 533.2px; height: 1232.7px; }
+  #stage #quyu-r { left: 2000.5px; top: -56.9px; width: 533.2px; height: 1232.7px; }
+  #stage #heikuai-tex { left: -1px; top: 1189px; width: 2598px; height: 215px; }
+
+  /* 以下三层按画板1.svg 权威包围盒定位（画板 1280×720 ×2 = 画布 2560×1440） */
+  /* 主支撑图像：内容bbox(119,101)-(1981,1312)/2074×1415 → 目标[207,85]-[2322,1499]，纵向有 ~2.7% 拉伸 */
+  #stage #shan { left: 72px; top: 12.7px; width: 2376px; height: 1637.5px; }
+  /* 残缺圆：白底细线圆环，multiply 掉白底只留线条；目标[128,87]-[2473,2431]（直径 2345） */
+  #stage #canquyuan { left: 675.4px; top: 376.8px; width: 1244.6px; height: 1244.6px; mix-blend-mode: multiply; }
+  /* 树状呼吸亮光(webp)：光晕内容 464²/525×526，对齐闪烁光晕圆心 (1300,782)，显示直径 476（画板呼吸层尺寸） */
+  #stage #huxi { left: 1029px; top: 512px; width: 539px; height: 539px; }
+  /* 圆形_颜色淡化滤镜：Affinity「颜色淡化」即 color-dodge；光晕圆心(1300,1194) 半径811，目标[489,383]-[2112,2006] */
+  #stage #pinkglow { left: 583.4px; top: 947.6px; width: 1423px; height: 1423px; mix-blend-mode: color-dodge; }
+</style>
+<script src="scripts/config/animation_timing.js"></script>
+<script src="scripts/config/growth_ascii_config.js"></script>
+</head>
+<body>
+  <div id="stage">
+    <div class="el" id="ditu"><img src="icon/背景底图.webp" alt=""></div>
+    <div class="el" id="hexin"><img src="icon/_画板版_核心.svg" alt="核心"></div>
+    <div class="el" id="paixian"><img src="icon/新_覆盖向下拓展线段.svg" alt=""></div>
+    <div class="el" id="canquyuan"><img src="icon/残缺圆.webp" alt=""></div>
+    <div class="el" id="quyu-r"><img src="icon/区域构成_右.webp" alt=""></div>
+    <div class="el" id="quyu-l"><img src="icon/区域构成_左.webp" alt=""></div>
+    <div class="el" id="shan"><img src="icon/主支撑图像.webp" alt=""></div>
+    <div class="el" id="quxian-l"><img src="icon/测试曲线.svg" alt=""></div>
+    <div class="el" id="pinkglow"><img src="icon/圆形_颜色淡化滤镜.svg" alt=""></div>
+    <div class="el" id="huxi"><img src="icon/树状呼吸亮光_叠加滤镜.webp" alt=""></div>
+    <div class="el" id="shanshuo"><img src="icon/随机闪烁亮光_叠加滤镜.svg" alt=""></div>
+    <div class="el" id="ring"><img src="icon/_画板版_树内动画圆.svg" alt=""></div>
+    <div class="el" id="tree"><img src="icon/_画板版_路径动画树状主体.svg" alt="树"></div>
+    <div class="el" id="dimian"><img src="icon/_画板版_底面黑块.svg" alt=""></div>
+    <div class="el" id="heikuai-tex"><img src="icon/底面黑块渐变渲染.webp" alt=""></div>
+    <div class="el" id="yellowline"><img src="icon/_画板版_地面黑块_额外元素.svg" alt=""></div>
+    <div class="el" id="xiala"><img src="icon/_画板版_下拉预备.svg" alt=""></div>
+    <div class="el" id="title"><img src="icon/_画板版_rszs.svg" alt="Plastic Tree 熔塑之树"></div>
+    <div class="el" id="xiangshang"><img src="icon/_画板版_向上线条.svg" alt=""></div>
+    <div class="el" id="start"><img src="icon/_画板版_bottom开始求索.svg" alt="开始求索"></div>
+    <div class="el" id="icon-back"><img src="icon/_画板版_bottom_退出.svg" alt="退出"></div>
+    <div class="el" id="icon-hub"><img src="icon/_画板版_bottom_中枢.svg" alt="中枢"></div>
+    <div class="el" id="huandong"><img src="icon/_画板版_缓动线条.svg" alt=""></div>
+    <div class="el" id="bianjiao"><img src="icon/_画板版_边角装饰.svg" alt=""></div>
+    <div class="el" id="label-dangan"><img src="icon/_画板版_bottom_档案库.svg" alt="档案库"></div>
+    <div class="el" id="label-yutan"><img src="icon/_画板版_bottom_预探神迹.svg" alt="预探神迹"></div>
+    <div class="el" id="label-jiehuo"><img src="icon/_画板版_bottom_截获记录.svg" alt="截获记录"></div>
+    <div class="el" id="label-renyuan"><img src="icon/_画板版_bottom_人员补充.svg" alt="人员补充"></div>
+    <div class="el" id="music-pause"><img src="icon/bottom_播放音乐.svg" alt="暂停音乐"></div>
+    <div class="el" id="music-play"><img src="icon/bottom_停止播放音乐.svg" alt="播放音乐"></div>
+  </div>
+
+  <div id="loading-screen" role="status" aria-live="polite">
+    <div class="loading-box">
+      <div class="loading-label">正在加载界面资源</div>
+      <div class="loading-track"><div id="loading-progress"></div></div>
+      <div id="loading-percent">0%</div>
+    </div>
+  </div>
+<script src="scripts/core/app_bootstrap.js"></script>
+<script src="scripts/core/stage_fit.js"></script>
+<script src="scripts/animation/curves.js"></script>
+<script src="scripts/animation/glow.js"></script>
+<script src="scripts/animation/intro.js"></script>
+<script src="scripts/animation/fx.js"></script>
+<script src="scripts/animation/button_fx.js"></script>
+<script src="scripts/animation/start_fx.js"></script>
+<script src="scripts/animation/growth_mask_fx.js"></script>
+<script src="scripts/animation/tree_fx.js"></script>
+<script src="scripts/animation/up_fx.js"></script>
+<script src="scripts/animation/music_fx.js"></script>
+<script src="scripts/animation/shan_fx.js"></script>
+</body>
+</html>
