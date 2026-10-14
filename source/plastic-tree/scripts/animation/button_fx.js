@@ -88,15 +88,12 @@
   function playSfx(kind) {
     const url = SFX[kind];
     if (!url) return;
+    if (!window.Howl) return;
     let a = sfxCache[url];
     if (!a) {
-      const source = window.__getPreloadedAudioURL?.(url) || url;
-      a = sfxCache[url] = new Audio(source);
-      a.preload = 'auto';
+      a = sfxCache[url] = new Howl({ src: [url], html5: true, preload: 'metadata', volume: SFX.volume });
     }
-    const inst = a.paused ? a : a.cloneNode();
-    inst.volume = SFX.volume;
-    inst.play().catch(() => {});   // 自动播放策略拒绝时静默（见上注释）
+    a.play();
   }
 
   /* ===== 工具 ===== */
