@@ -1,6 +1,6 @@
 /* 入场编排 (v2)
    - quyu-l / quyu-r 区域构成：透明度缓出淡入（左侧先、右侧稍后）
-   - pinkglow 圆形_颜色淡化滤镜：与树状主体开始生长同步播放，
+   - pinkglow 圆形_颜色淡化滤镜：在主时间线 T0（appReady）立即播放，
      透明度 0→1 浮现 + 向上缓动归位（缓动 cubic-bezier(0.632, 0.004, 0.608, 1)）
    （线段层的生长动画已迁移至 curves.js 的矢量路径引擎） */
 (function () {
@@ -14,7 +14,6 @@
   const PINK_DUR     = TIMING.pinkDuration ?? 4000;    // 浮现时长 ms
   const PINK_EASE    = 'cubic-bezier(0.632, 0.004, 0.608, 1)';
   const PINK_RISE    = TIMING.pinkRise ?? 60;          // 起始下移量 px（向上归位）
-  const PINK_FALLBACK= TIMING.pinkFallback ?? 8000;    // 生长事件未送达时的兜底等待 ms
 
   window.addEventListener('DOMContentLoaded', () => {
     const regions = [['quyu-l', QUYU_START], ['quyu-r', QUYU_START + QUYU_GAP]];
@@ -24,7 +23,7 @@
     });
     const pink = document.getElementById('pinkglow');
     if (pink) pink.style.opacity = '0';
-    let pinkPlayed = false, pinkFallbackTimer = 0;
+    let pinkPlayed = false;
 
     function playRegions() {
       regions.forEach(([id, delay]) => {
@@ -42,7 +41,6 @@
     function playPink() {
       if (!pink || pinkPlayed) return;
       pinkPlayed = true;
-      clearTimeout(pinkFallbackTimer);
       pink.animate(
         [{ opacity: 0, transform: `translateY(${PINK_RISE}px)` },
          { opacity: 1, transform: 'translateY(0px)' }],
@@ -58,16 +56,14 @@
       pinkPlayed = false;
     }
 
-    window.addEventListener('tree:grow:start', playPink);
     window.whenAppReady(() => {
       playRegions();
-      pinkFallbackTimer = setTimeout(playPink, PINK_FALLBACK);
+      playPink();
     });
     window.addEventListener('animations:replay', () => {
-      clearTimeout(pinkFallbackTimer);
       playRegions();
       resetPink();
-      pinkFallbackTimer = setTimeout(playPink, PINK_FALLBACK);
+      playPink();
     });
   });
 })();

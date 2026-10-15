@@ -10,8 +10,7 @@ window.ANIMATION_TIMING = {
     quyuLeftDelay: 1200,
     quyuRightGap: 350,
     quyuFadeDuration: 1200,
-    pinkDuration: 1200,
-    pinkFallback: 5000,
+    pinkDuration: 600,
     pinkRise: 60,
   },
   curves: {
