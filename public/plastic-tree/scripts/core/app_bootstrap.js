@@ -114,10 +114,11 @@
   window.addEventListener('animations:replay', () => {
     const token = ++replayToken;
     clearTimeout(replayTimer);
-    backgroundCoverAnimations.forEach(animation => animation.cancel());
-    backgroundCoverAnimations = [];
-    resetBackgroundCoverLayer(document.getElementById('ditu'), true);
-    resetBackgroundCoverLayer(document.getElementById('ditu-smooth'), false);
+    // 延迟期冻结当前已显示的遮罩帧；若此时直接 cancel/reset，0px 遮罩会让底下
+    // 的红黑覆盖图整幅露出 300ms，看起来像遮罩闪现。真正开播前再统一归零。
+    backgroundCoverAnimations.forEach(animation => {
+      if (animation.playState === 'running') animation.pause();
+    });
     const shanLayer = document.getElementById('shan');
     // 连点时沿用首轮隐藏前的状态；不能把上一轮写入的 `hidden` 当作恢复值。
     if (shanStyleBeforeReplay === null) {
@@ -130,6 +131,8 @@
       requestAnimationFrame(async () => {
         await waitForBackgroundCoverDelay();
         if (token !== replayToken) return;
+        backgroundCoverAnimations.forEach(animation => animation.cancel());
+        backgroundCoverAnimations = [];
         await playBackgroundCoverPair(revealDuration, () => token === replayToken);
         finishReplayT0();
       });

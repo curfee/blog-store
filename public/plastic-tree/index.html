@@ -35,6 +35,11 @@
     --background-halftone-dot-core-effective: 1px;
     --background-halftone-dot-mid-effective: 1.6px;
     --background-halftone-dot-edge-effective: 5.5px;
+    /* 两层背景遮罩位置：分别用百分比调整，默认均居中。 */
+    --background-halftone-mask-x: 51.2%;
+    --background-halftone-mask-y: 50%;
+    --background-smooth-mask-x: 50.9%;
+    --background-smooth-mask-y: 50%;
     --background-mask-reveal-size: 0px;
   }
   @property --background-mask-reveal-size {
@@ -93,7 +98,9 @@
     -webkit-mask-image:
       url('icon/背景底图_mask.svg'),
       radial-gradient(circle, #000 var(--background-halftone-dot-core-effective), rgba(0, 0, 0, var(--background-halftone-dot-mid-alpha)) var(--background-halftone-dot-mid-effective), transparent var(--background-halftone-dot-edge-effective));
-    -webkit-mask-position: center, center;
+    -webkit-mask-position:
+      var(--background-halftone-mask-x) var(--background-halftone-mask-y),
+      var(--background-halftone-mask-x) var(--background-halftone-mask-y);
     -webkit-mask-repeat: no-repeat, repeat;
     -webkit-mask-size: 0 0, var(--background-halftone-dot-step-effective) var(--background-halftone-dot-step-effective);
     -webkit-mask-composite: source-in;
@@ -101,7 +108,9 @@
       url('icon/背景底图_mask.svg'),
       radial-gradient(circle, #000 var(--background-halftone-dot-core-effective), rgba(0, 0, 0, var(--background-halftone-dot-mid-alpha)) var(--background-halftone-dot-mid-effective), transparent var(--background-halftone-dot-edge-effective));
     mask-mode: alpha;
-    mask-position: center, center;
+    mask-position:
+      var(--background-halftone-mask-x) var(--background-halftone-mask-y),
+      var(--background-halftone-mask-x) var(--background-halftone-mask-y);
     mask-repeat: no-repeat, repeat;
     mask-size: 0 0, var(--background-halftone-dot-step-effective) var(--background-halftone-dot-step-effective);
     mask-composite: intersect;
@@ -120,8 +129,14 @@
   #stage #ditu-smooth {
     visibility: hidden;
     opacity: 0;
-    -webkit-mask: url('icon/背景底图_mask.svg') center / 0 0 no-repeat;
-    mask: url('icon/背景底图_mask.svg') center / 0 0 no-repeat;
+    -webkit-mask-image: url('icon/背景底图_mask.svg');
+    -webkit-mask-position: var(--background-smooth-mask-x) var(--background-smooth-mask-y);
+    -webkit-mask-size: 0 0;
+    -webkit-mask-repeat: no-repeat;
+    mask-image: url('icon/背景底图_mask.svg');
+    mask-position: var(--background-smooth-mask-x) var(--background-smooth-mask-y);
+    mask-size: 0 0;
+    mask-repeat: no-repeat;
     mask-mode: alpha;
     transition: none;
   }
@@ -210,7 +225,7 @@
       <div id="loading-percent">0%</div>
     </div>
   </div>
-<script src="scripts/core/app_bootstrap.js?v=dual-mask-5"></script>
+<script src="scripts/core/app_bootstrap.js?v=dual-mask-6"></script>
 <script src="scripts/core/stage_fit.js"></script>
 <script src="scripts/animation/curves.js"></script>
 <script src="scripts/animation/glow.js"></script>
@@ -225,8 +240,7 @@
 <script src="scripts/animation/up_fx.js"></script>
 <script src="scripts/animation/button_reveal_fx.js"></script>
 <script src="scripts/animation/replay_fx.js"></script>
-<script src="scripts/vendor/howler.core.min.js"></script>
-<script src="scripts/animation/music_fx.js?v=a7883f3-r3"></script>
+<script src="scripts/animation/music_fx.js"></script>
 <script src="scripts/animation/shan_fx.js"></script>
 </body>
 </html>
