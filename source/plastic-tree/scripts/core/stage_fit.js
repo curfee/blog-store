@@ -5,6 +5,23 @@
   const MAX_SCALE = 1.05;
   const BOTTOM_CROP_RATIO = 0.07;
   const stage = document.getElementById('stage');
+  const root = document.documentElement;
+  const halftoneDimensions = [
+    '--background-halftone-dot-step',
+    '--background-halftone-dot-core',
+    '--background-halftone-dot-mid',
+    '--background-halftone-dot-edge',
+  ];
+
+  function syncHalftoneToStageScale(scale) {
+    const styles = getComputedStyle(root);
+    root.style.setProperty('--stage-scale', String(scale));
+    for (const property of halftoneDimensions) {
+      const designPixels = Number.parseFloat(styles.getPropertyValue(property));
+      if (!Number.isFinite(designPixels)) continue;
+      root.style.setProperty(`${property}-effective`, `${(designPixels / scale).toFixed(4)}px`);
+    }
+  }
 
   function fitStage() {
     const scale = Math.min(
@@ -12,6 +29,7 @@
       window.innerHeight / (DESIGN_HEIGHT * (1 - BOTTOM_CROP_RATIO)),
       MAX_SCALE
     );
+    syncHalftoneToStageScale(scale);
     stage.style.transform = `scale(${scale})`;
     stage.style.left = `${(window.innerWidth - DESIGN_WIDTH * scale) / 2}px`;
     stage.style.top = `${Math.max(0, (window.innerHeight - DESIGN_HEIGHT * scale) / 2)}px`;

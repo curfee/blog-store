@@ -31,6 +31,10 @@
     --background-halftone-dot-mid: 1.6px;
     --background-halftone-dot-mid-alpha: .5;
     --background-halftone-dot-edge: 5.5px;
+    --background-halftone-dot-step-effective: 3px;
+    --background-halftone-dot-core-effective: 1px;
+    --background-halftone-dot-mid-effective: 1.6px;
+    --background-halftone-dot-edge-effective: 5.5px;
     --background-mask-reveal-size: 0px;
   }
   @property --background-mask-reveal-size {
@@ -88,18 +92,18 @@
     opacity: 0;
     -webkit-mask-image:
       url('icon/背景底图_mask.svg'),
-      radial-gradient(circle, #000 var(--background-halftone-dot-core), rgba(0, 0, 0, var(--background-halftone-dot-mid-alpha)) var(--background-halftone-dot-mid), transparent var(--background-halftone-dot-edge));
+      radial-gradient(circle, #000 var(--background-halftone-dot-core-effective), rgba(0, 0, 0, var(--background-halftone-dot-mid-alpha)) var(--background-halftone-dot-mid-effective), transparent var(--background-halftone-dot-edge-effective));
     -webkit-mask-position: center, center;
     -webkit-mask-repeat: no-repeat, repeat;
-    -webkit-mask-size: 0 0, var(--background-halftone-dot-step) var(--background-halftone-dot-step);
+    -webkit-mask-size: 0 0, var(--background-halftone-dot-step-effective) var(--background-halftone-dot-step-effective);
     -webkit-mask-composite: source-in;
     mask-image:
       url('icon/背景底图_mask.svg'),
-      radial-gradient(circle, #000 var(--background-halftone-dot-core), rgba(0, 0, 0, var(--background-halftone-dot-mid-alpha)) var(--background-halftone-dot-mid), transparent var(--background-halftone-dot-edge));
+      radial-gradient(circle, #000 var(--background-halftone-dot-core-effective), rgba(0, 0, 0, var(--background-halftone-dot-mid-alpha)) var(--background-halftone-dot-mid-effective), transparent var(--background-halftone-dot-edge-effective));
     mask-mode: alpha;
     mask-position: center, center;
     mask-repeat: no-repeat, repeat;
-    mask-size: 0 0, var(--background-halftone-dot-step) var(--background-halftone-dot-step);
+    mask-size: 0 0, var(--background-halftone-dot-step-effective) var(--background-halftone-dot-step-effective);
     mask-composite: intersect;
     transition: none;
   }
@@ -108,10 +112,10 @@
     opacity: 1;
     -webkit-mask-size:
       var(--background-mask-reveal-size) var(--background-mask-reveal-size),
-      var(--background-halftone-dot-step) var(--background-halftone-dot-step);
+      var(--background-halftone-dot-step-effective) var(--background-halftone-dot-step-effective);
     mask-size:
       var(--background-mask-reveal-size) var(--background-mask-reveal-size),
-      var(--background-halftone-dot-step) var(--background-halftone-dot-step);
+      var(--background-halftone-dot-step-effective) var(--background-halftone-dot-step-effective);
   }
   #stage #ditu-smooth {
     visibility: hidden;
