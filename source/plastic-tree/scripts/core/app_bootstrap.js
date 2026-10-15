@@ -54,6 +54,14 @@
     void layer.offsetWidth;
   }
 
+  function showBackgroundCoverWhenReady(layer, animation = null) {
+    requestAnimationFrame(() => {
+      if (!layer?.isConnected || animation?.playState === 'idle') return;
+      layer.style.visibility = 'visible';
+      layer.style.opacity = '1';
+    });
+  }
+
   function playBackgroundCover(layer, duration, halftone) {
     if (!layer) return Promise.resolve();
     resetBackgroundCoverLayer(layer, halftone);
@@ -71,14 +79,13 @@
         { duration, easing: 'ease-in-out', fill: 'both' }
       );
       backgroundCoverAnimations.push(animation);
-      layer.style.visibility = 'visible';
-      layer.style.opacity = '1';
+      // 等动画的 0% 关键帧先提交，再露出图层，避免复位前一轮的遮罩状态闪一帧。
+      showBackgroundCoverWhenReady(layer, animation);
       return animation.finished.catch(() => {});
     } catch (error) {
       console.warn('[app_bootstrap] 背景遮罩动画启动失败，直接完成遮罩：', error);
       layer.style.setProperty('--background-mask-reveal-size', finalSize);
-      layer.style.visibility = 'visible';
-      layer.style.opacity = '1';
+      showBackgroundCoverWhenReady(layer);
       return new Promise(resolve => setTimeout(resolve, duration));
     }
   }
