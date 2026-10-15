@@ -68,7 +68,7 @@
           { '--background-mask-reveal-size': '0px' },
           { '--background-mask-reveal-size': finalSize },
         ],
-        { duration, easing: 'ease-out', fill: 'both' }
+        { duration, easing: 'ease-in-out', fill: 'both' }
       );
       backgroundCoverAnimations.push(animation);
       layer.style.visibility = 'visible';
