@@ -7,9 +7,12 @@
   const SHAN_TIMING = window.ANIMATION_TIMING?.shanReveal || {};
   const PATH_DURATION = Math.max(1, Number(SHAN_TIMING.duration ?? SETTINGS.duration) || 2900);
   const PATH_EASING = SHAN_TIMING.easing || SETTINGS.easing || [0, 0.83, 0.47, 1];
+  const CLEANUP_EASING = SHAN_TIMING.cleanupEasing || [0.86, 0, 0.14, 1];
   const APPLY_PATH_EASING = SHAN_TIMING.applyEasing ?? (SETTINGS.applyEasing !== false);
   const SPHERE_START = Math.max(0, Number(SHAN_TIMING.sphereStart) || 0);
   const SPHERE_DURATION = Math.max(0, Number(SHAN_TIMING.sphereDuration ?? 400) || 0);
+  const INITIAL_Y_OFFSET = Number(SHAN_TIMING.initialYOffset) || 0;
+  const INITIAL_Y_EASING = SHAN_TIMING.initialYOffsetEasing || [0, 0.198, 0.072, 0.995];
   const CLEANUP_DURATION = Math.max(0, Number(SHAN_TIMING.cleanupDuration ?? SETTINGS.cleanupDuration) || 0);
   const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
   const LAYOUT = SETTINGS.geometry || {};
@@ -18,13 +21,15 @@
   const SPHERE_MASK_POSITION = LAYOUT.sphereMaskPosition || { x: 50, y: 50 }; // 容器百分比
   let W = 0, H = 0, records = [];
   let maskFit = { scaleX: 1, scaleY: 1, offsetX: 0, offsetY: 0 };
-  let manual = false, frame = 0, sphereFrame = 0, cleanupFrame = 0, active = false, cleaning = false, completing = false, done = false;
-  let host, image, outputCanvas, outputCtx, sourceCanvas, sourceCtx, pixelCanvas, pixelCtx, maskCanvas, maskCtx;
+  let manual = false, frame = 0, cleanupFrame = 0, treeStartTimer = 0, active = false, cleaning = false, completing = false, done = false;
+  let host, image, outputCanvas, outputCtx, sourceCanvas, sourceCtx, pixelCanvas, pixelCtx, asciiCanvas, asciiCtx, asciiGlyphs, asciiColumns = 0, baseMaskCanvas, baseMaskCtx, maskCanvas, maskCtx;
   let overlayCanvases = [];
   let sphereProgress = 0, cleanupProgress = 0, pathProgress = 0;
-  let spherePromise = null, sphereTriggerPromise = null, sphereStartTimer = 0;
+  let baseMaskReady = false;
+  let sphereStartAt = 0;
   window.__shanRevealAnimating = true;
   window.__shanRevealDone = false;
+  window.__shanIntroOffsetY = INITIAL_Y_OFFSET;
   const treeLayer = document.getElementById('tree');
   if (treeLayer) treeLayer.style.visibility = 'hidden';
 
@@ -37,6 +42,28 @@
   }
 
   const poly = (a, b) => t => (((1 - 3 * b + 3 * a) * t + (3 * (b - a) - 3 * a)) * t + 3 * a) * t;
+  const cleanupBx = poly(CLEANUP_EASING[0], CLEANUP_EASING[2]);
+  const cleanupBy = poly(CLEANUP_EASING[1], CLEANUP_EASING[3]);
+  const easeCleanup = x => {
+    let low = 0, high = 1, t = x;
+    for (let i = 0; i < 22; i++) {
+      t = (low + high) / 2;
+      if (cleanupBx(t) < x) low = t;
+      else high = t;
+    }
+    return cleanupBy(t);
+  };
+  const offsetBx = poly(INITIAL_Y_EASING[0], INITIAL_Y_EASING[2]);
+  const offsetBy = poly(INITIAL_Y_EASING[1], INITIAL_Y_EASING[3]);
+  const easeInitialYOffset = x => {
+    let low = 0, high = 1, t = x;
+    for (let i = 0; i < 22; i++) {
+      t = (low + high) / 2;
+      if (offsetBx(t) < x) low = t;
+      else high = t;
+    }
+    return offsetBy(t);
+  };
   const ease = (() => {
     const curve = PATH_EASING;
     const bx = poly(curve[0], curve[2]), by = poly(curve[1], curve[3]);
@@ -105,8 +132,10 @@
   }
 
   /* 3. 像素化、ASCII 采样与最终图像蒙版合成。 */
-  function createMask(progress) {
+  function createMask(progress, redrawBase = true) {
     pathProgress = progress;
+    if (redrawBase) {
+    baseMaskReady = true;
     drawGrowingPaths(APPLY_PATH_EASING ? ease(progress) : progress);
     const block = Math.max(1, Number(SETTINGS.pixelSize) || 8);
     const lowW = Math.max(1, Math.ceil(W / block)), lowH = Math.max(1, Math.ceil(H / block));
@@ -118,55 +147,66 @@
     pixelCtx.imageSmoothingEnabled = true;
     pixelCtx.drawImage(sourceCanvas, 0, 0, lowW, lowH);
     const imageData = pixelCtx.getImageData(0, 0, lowW, lowH), data = imageData.data;
-    const originalAlpha = new Uint8ClampedArray(data.length / 4);
-    const originalLuminance = new Uint8ClampedArray(data.length / 4);
-    for (let i = 0, p = 0; i < data.length; i += 4, p++) {
-      originalAlpha[p] = data[i + 3];
-      const luminance = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
-      originalLuminance[p] = luminance;
-      data[i] = data[i + 1] = data[i + 2] = 255;
-      data[i + 3] = Math.round(data[i + 3] * luminance / 255);
-    }
-    pixelCtx.putImageData(imageData, 0, 0);
-
-    maskCtx.clearRect(0, 0, W, H);
-    maskCtx.imageSmoothingEnabled = false;
-    maskCtx.drawImage(pixelCanvas, 0, 0, W, H);
     const cell = Math.max(1, Number(SETTINGS.asciiSize) || 12);
     const chars = Array.from(SETTINGS.charset || '！@￥%#&%*');
-    maskCtx.save();
-    maskCtx.font = `${cell}px ${SETTINGS.asciiFont || 'Consolas, monospace'}`;
-    maskCtx.textBaseline = 'top';
-    maskCtx.textAlign = 'center';
-    maskCtx.fillStyle = '#fff';
     const color = SETTINGS.asciiColor || '#ffffff';
     const colorLuminance = (
       parseInt(color.slice(1, 3), 16) * 0.299 +
       parseInt(color.slice(3, 5), 16) * 0.587 +
       parseInt(color.slice(5, 7), 16) * 0.114
     ) / 255;
-    maskCtx.globalAlpha = clamp(Number(SETTINGS.asciiOpacity ?? 0.92) * colorLuminance, 0, 1);
+    asciiCtx.save();
+    asciiCtx.font = `${cell}px ${SETTINGS.asciiFont || 'Consolas, monospace'}`;
+    asciiCtx.textBaseline = 'top';
+    asciiCtx.textAlign = 'center';
+    asciiCtx.fillStyle = '#fff';
+    asciiCtx.globalAlpha = clamp(Number(SETTINGS.asciiOpacity ?? 0.92) * colorLuminance, 0, 1);
+    asciiCtx.setTransform(maskFit.scaleX, 0, 0, maskFit.scaleY, maskFit.offsetX, maskFit.offsetY);
     if (SETTINGS.asciiEnabled !== false) {
-      maskCtx.save();
-      maskCtx.setTransform(maskFit.scaleX, 0, 0, maskFit.scaleY, maskFit.offsetX, maskFit.offsetY);
       for (let y = cell / 2; y < H; y += cell) {
         const fitY = y * maskFit.scaleY + maskFit.offsetY;
         const sy = Math.min(lowH - 1, Math.floor(fitY / H * lowH));
+        const row = Math.round((y - cell / 2) / cell);
         for (let x = cell / 2; x < W; x += cell) {
           const fitX = x * maskFit.scaleX + maskFit.offsetX;
           const sx = Math.min(lowW - 1, Math.floor(fitX / W * lowW));
-          const p = sy * lowW + sx;
-          if (originalAlpha[p] < 24) continue;
-          const darkness = 1 - originalLuminance[p] / 255;
-          const density = SETTINGS.mapping === 'light-to-dark' ? 1 - darkness : darkness;
-          maskCtx.fillText(chars[Math.round(density * (chars.length - 1))], x, y - cell / 2);
+          const p = (sy * lowW + sx) * 4;
+          const alpha = data[p + 3];
+          const luminance = data[p] * 0.299 + data[p + 1] * 0.587 + data[p + 2] * 0.114;
+          const column = Math.round((x - cell / 2) / cell);
+          const glyphIndex = row * asciiColumns + column;
+          let nextGlyph = -1;
+          if (alpha >= 24) {
+            const darkness = 1 - luminance / 255;
+            const density = SETTINGS.mapping === 'light-to-dark' ? 1 - darkness : darkness;
+            nextGlyph = Math.round(density * (chars.length - 1));
+          }
+          if (asciiGlyphs[glyphIndex] === nextGlyph) continue;
+          asciiGlyphs[glyphIndex] = nextGlyph;
+          asciiCtx.clearRect(x - cell / 2, y - cell / 2, cell, cell);
+          if (nextGlyph < 0) continue;
+          asciiCtx.fillText(chars[nextGlyph], x, y - cell / 2);
         }
       }
-      maskCtx.restore();
     }
-    maskCtx.restore();
+    asciiCtx.restore();
 
-    // 路径与球形扩散共用同一张 alpha 蒙版；不再额外创建主图副本。
+    for (let i = 0; i < data.length; i += 4) {
+      const luminance = data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114;
+      data[i] = data[i + 1] = data[i + 2] = 255;
+      data[i + 3] = Math.round(data[i + 3] * luminance / 255);
+    }
+    pixelCtx.putImageData(imageData, 0, 0);
+
+    baseMaskCtx.clearRect(0, 0, W, H);
+    baseMaskCtx.imageSmoothingEnabled = false;
+    baseMaskCtx.drawImage(pixelCanvas, 0, 0, W, H);
+    if (SETTINGS.asciiEnabled !== false) baseMaskCtx.drawImage(asciiCanvas, 0, 0);
+    }
+
+    // 路径像素/ASCII 底图在球形扩散帧间复用，只重绘球形蒙版与最终合成。
+    maskCtx.clearRect(0, 0, W, H);
+    maskCtx.drawImage(baseMaskCanvas, 0, 0);
     if (sphereProgress > 0) {
       const hostWidth = host.clientWidth || W;
       const hostHeight = host.clientHeight || H;
@@ -201,7 +241,9 @@
 
     outputCtx.clearRect(0, 0, W, H);
     outputCtx.globalCompositeOperation = 'source-over';
-    outputCtx.drawImage(image, 0, 0, W, H);
+    const hostHeight = host.clientHeight || H;
+    const imageOffsetY = (Number(window.__shanIntroOffsetY) || 0) * H / hostHeight;
+    outputCtx.drawImage(image, 0, imageOffsetY, W, H);
     outputCtx.globalCompositeOperation = 'destination-in';
     outputCtx.drawImage(maskCanvas, 0, 0);
     outputCtx.globalCompositeOperation = 'source-over';
@@ -233,43 +275,22 @@
   }
 
   /* 4. 球形蒙版触发、收尾交接与预览控制。 */
-  function playSphereMask() {
-    if (spherePromise) return spherePromise;
-    const start = performance.now();
-    sphereProgress = 0;
-    spherePromise = new Promise(resolve => {
-      const tick = now => {
-        sphereProgress = SPHERE_DURATION === 0 ? 1 : clamp((now - start) / SPHERE_DURATION, 0, 1);
-        createMask(pathProgress);
-        if (sphereProgress < 1) sphereFrame = requestAnimationFrame(tick);
-        else { sphereFrame = 0; resolve(); }
-      };
-      sphereFrame = requestAnimationFrame(tick);
-    });
-    return spherePromise;
-  }
-
   function finishGrowth() {
     if (completing || cleaning) return;
+    if (sphereProgress < 1) return;
     completing = true;
-    (sphereTriggerPromise || playSphereMask()).then(cleanup);
+    cleanup();
   }
 
   function scheduleSphereMask(startTime, duration) {
     const triggerAt = Math.min(SPHERE_START, duration);
-    sphereTriggerPromise = new Promise(resolve => {
-      sphereStartTimer = setTimeout(() => {
-        sphereStartTimer = 0;
-        playSphereMask().then(resolve);
-      }, Math.max(0, startTime + triggerAt - performance.now()));
-    });
+    sphereStartAt = startTime + triggerAt;
+    sphereProgress = 0;
   }
 
   function useManualProgress() {
     manual = true;
-    clearTimeout(sphereStartTimer);
-    sphereStartTimer = 0;
-    sphereTriggerPromise = null;
+    sphereStartAt = 0;
   }
 
   function restoreOverlayCanvases() {
@@ -294,8 +315,9 @@
     window.dispatchEvent(new Event('shan:reveal:effect:start'));
     const start = performance.now();
     const fade = now => {
-      cleanupProgress = CLEANUP_DURATION === 0 ? 1 : clamp((now - start) / CLEANUP_DURATION, 0, 1);
-      createMask(1);
+      const rawProgress = CLEANUP_DURATION === 0 ? 1 : clamp((now - start) / CLEANUP_DURATION, 0, 1);
+      cleanupProgress = easeCleanup(rawProgress);
+      createMask(1, false);
       if (cleanupProgress < 1) {
         cleanupFrame = requestAnimationFrame(fade);
         return;
@@ -321,8 +343,62 @@
     const progress = clamp(Number(value) || 0, 0, 1);
     activateCanvas();
     if (treeLayer) treeLayer.style.visibility = progress >= 1 ? '' : 'hidden';
+    baseMaskReady = false;
     createMask(progress);
     if (progress >= 1 && shouldFinish) finishGrowth();
+  }
+
+  function startReveal() {
+    if (manual) return;
+    if (!outputCtx || !records.length) { finishWithoutMask(); return; }
+    cancelAnimationFrame(frame);
+    cancelAnimationFrame(cleanupFrame);
+    clearTimeout(treeStartTimer);
+    restoreOverlayCanvases();
+    overlayCanvases = [];
+    outputCanvas.remove();
+    host.style.overflow = '';
+    image.style.visibility = '';
+    image.style.opacity = '';
+    image.style.transition = '';
+    active = false;
+    cleaning = false;
+    completing = false;
+    done = false;
+    frame = cleanupFrame = 0;
+    pathProgress = sphereProgress = cleanupProgress = 0;
+    baseMaskReady = false;
+    sphereStartAt = 0;
+    window.__shanRevealAnimating = true;
+    window.__shanRevealDone = false;
+    window.__shanIntroOffsetY = INITIAL_Y_OFFSET;
+    if (treeLayer) treeLayer.style.visibility = 'hidden';
+
+    const start = performance.now();
+    scheduleSphereMask(start, PATH_DURATION);
+    const treeLead = Math.max(0, Number(window.ANIMATION_TIMING?.tree?.startBeforeShanDone) || 0);
+    const shanTotalDuration = Math.max(PATH_DURATION, SPHERE_START + SPHERE_DURATION) + CLEANUP_DURATION;
+    const treeStartDelay = Math.max(0, shanTotalDuration - treeLead);
+    treeStartTimer = window.setTimeout(() => {
+      treeStartTimer = 0;
+      window.dispatchEvent(new Event('shan:reveal:tree-start'));
+    }, treeStartDelay);
+    const tick = now => {
+      if (manual) return;
+      const progress = Math.min(1, (now - start) / PATH_DURATION);
+      activateCanvas();
+      if (treeLayer) treeLayer.style.visibility = progress >= 1 ? '' : 'hidden';
+      const sphereStarted = now >= sphereStartAt;
+      if (sphereStarted) {
+        sphereProgress = SPHERE_DURATION === 0 ? 1 : clamp((now - sphereStartAt) / SPHERE_DURATION, 0, 1);
+        window.__shanIntroOffsetY = INITIAL_Y_OFFSET * (1 - easeInitialYOffset(sphereProgress));
+      }
+      const redrawBase = progress < 1 || !baseMaskReady;
+      createMask(progress, redrawBase);
+      if (progress < 1 || sphereProgress < 1) frame = requestAnimationFrame(tick);
+      else finishGrowth();
+    };
+    frame = requestAnimationFrame(tick);
   }
 
   async function loadMaskSource() {
@@ -376,6 +452,14 @@
     sourceCtx = sourceCanvas.getContext('2d');
     pixelCanvas = document.createElement('canvas');
     pixelCtx = pixelCanvas.getContext('2d', { willReadFrequently: true });
+    const asciiCell = Math.max(1, Number(SETTINGS.asciiSize) || 12);
+    asciiColumns = Math.ceil(W / asciiCell);
+    const asciiRows = Math.ceil(H / asciiCell);
+    asciiCanvas = document.createElement('canvas'); asciiCanvas.width = W; asciiCanvas.height = H;
+    asciiCtx = asciiCanvas.getContext('2d');
+    asciiGlyphs = new Int16Array(asciiColumns * asciiRows).fill(-1);
+    baseMaskCanvas = document.createElement('canvas'); baseMaskCanvas.width = W; baseMaskCanvas.height = H;
+    baseMaskCtx = baseMaskCanvas.getContext('2d');
     maskCanvas = document.createElement('canvas'); maskCanvas.width = W; maskCanvas.height = H;
     maskCtx = maskCanvas.getContext('2d');
     outputCanvas = document.createElement('canvas'); outputCanvas.width = W; outputCanvas.height = H;
@@ -413,28 +497,20 @@
       finishWithoutMask();
       return;
     }
-    window.whenAppReady(() => {
-      if (manual) return;
-      const duration = PATH_DURATION;
-      const start = performance.now();
-      scheduleSphereMask(start, duration);
-      const tick = now => {
-        if (manual) return;
-        const progress = Math.min(1, (now - start) / duration);
-        setProgress(progress);
-        if (progress < 1) frame = requestAnimationFrame(tick);
-        else finishGrowth();
-      };
-      frame = requestAnimationFrame(tick);
-    });
+    window.whenAppReady(startReveal);
   }
 
   function finishWithoutMask() {
+    clearTimeout(treeStartTimer);
+    treeStartTimer = 0;
+    window.__shanIntroOffsetY = 0;
     window.__shanRevealAnimating = false;
     window.__shanRevealDone = true;
     if (treeLayer) treeLayer.style.visibility = '';
+    window.dispatchEvent(new Event('shan:reveal:tree-start'));
     window.dispatchEvent(new Event('shan:reveal:done'));
   }
 
+  window.addEventListener('animations:replay', startReveal);
   window.addEventListener('DOMContentLoaded', boot, { once: true });
 })();

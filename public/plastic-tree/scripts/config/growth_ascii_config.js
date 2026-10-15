@@ -8,12 +8,12 @@ window.GROWTH_ASCII_MASK_CONFIG = {
   easing: [0, 0.83, 0.47, 1],
   applyEasing: true,
   /* 像素化 */
-  pixelSize: 8,
+  pixelSize: 6,
   /* ASCII 字符层 */
   asciiSize: 12,
   charset: '！@￥%#&%*',
   asciiColor: '#ffffff',
-  asciiOpacity: 0.92,
+  asciiOpacity: 0.52,
   asciiFont: 'Consolas, "Microsoft YaHei", monospace',
   mapping: 'dark-to-light',
   asciiEnabled: true,
@@ -27,6 +27,6 @@ window.GROWTH_ASCII_MASK_CONFIG = {
   geometry: {
     pathMaskPosition: { x: 60, y: 0 },
     sphereMaskSize: 3000,
-    sphereMaskPosition: { x: 52, y: 50 },
+    sphereMaskPosition: { x: 51.7, y: 73.2 },
   },
 };

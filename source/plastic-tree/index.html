@@ -15,6 +15,18 @@
     -webkit-tap-highlight-color: transparent;
   }
   html, body { width: 100%; height: 100%; background: #000; overflow: hidden; }
+  /* 加载层外观入口：集中调整进度条、百分比字体与间距。 */
+  :root {
+    --loading-box-width: 320px;
+    --loading-track-height: 2px;
+    --loading-track-color: rgba(255, 255, 255, .2);
+    --loading-progress-color: #e1ff00;
+    --loading-progress-glow: rgba(225, 255, 0, .7);
+    --loading-percent-font: Consolas, monospace;
+    --loading-percent-size: 11px;
+    --loading-percent-color: rgba(255, 255, 255, .62);
+    --loading-percent-gap: 9px;
+  }
   body {
     background-image: url('icon/背景图.webp');
     background-position: center;
@@ -35,7 +47,7 @@
     cursor: default;
   }
   #loading-screen.is-ready { opacity: 0; pointer-events: none; }
-  .loading-box { width: min(320px, calc(100vw - 48px)); color: rgba(255,255,255,.86); text-align: center; }
+  .loading-box { width: min(var(--loading-box-width), calc(100vw - 48px)); color: rgba(255,255,255,.86); text-align: center; }
   .loading-label { margin-bottom: 14px; font: 12px/1.5 "Microsoft YaHei", sans-serif; letter-spacing: .18em; }
   #loading-screen.is-waiting .loading-label {
     margin-bottom: 20px;
@@ -46,9 +58,9 @@
     animation: ready-pulse 1.8s ease-in-out infinite alternate;
   }
   @keyframes ready-pulse { from { opacity: .68; } to { opacity: 1; } }
-  .loading-track { height: 2px; overflow: hidden; background: rgba(255,255,255,.2); }
-  #loading-progress { width: 0; height: 100%; background: #e1ff00; box-shadow: 0 0 10px rgba(225,255,0,.7); transition: width 180ms ease; }
-  #loading-percent { margin-top: 9px; font: 11px/1.2 Consolas, monospace; color: rgba(255,255,255,.62); }
+  .loading-track { height: var(--loading-track-height); overflow: hidden; background: var(--loading-track-color); }
+  #loading-progress { width: 0; height: 100%; background: var(--loading-progress-color); box-shadow: 0 0 10px var(--loading-progress-glow); transition: width 180ms ease; }
+  #loading-percent { margin-top: var(--loading-percent-gap); font: 400 var(--loading-percent-size)/1.2 var(--loading-percent-font); color: var(--loading-percent-color); font-variant-numeric: tabular-nums; }
   #stage {
     position: absolute;
     width: 2560px;
@@ -60,6 +72,9 @@
   /* 所有图层均为画板 1:1 抠图（全画布 2560×1440），z 序 = 画板文档顺序 */
   #stage .el { position: absolute; left: 0; top: 0; width: 2560px; height: 1440px; }
   #stage img { display: block; width: 100%; height: 100%; }
+  #stage #hexin { opacity: 0; }
+  #stage #label-jiehuo, #stage #label-yutan,
+  #stage #label-renyuan, #stage #label-dangan { opacity: 0; }
 
   /* 音乐开关（music_fx.js 内联后接管显隐；内联前整体隐藏，防止画板灰底闪显） */
   #stage #music-pause, #stage #music-play { visibility: hidden; }
@@ -67,7 +82,13 @@
   /* 例外：这三层用用户导出的 webp，按画板包围盒定位（需双 id 提升优先级） */
   #stage #quyu-l { left: 26.3px;   top: -56.9px; width: 533.2px; height: 1232.7px; }
   #stage #quyu-r { left: 2000.5px; top: -56.9px; width: 533.2px; height: 1232.7px; }
-  #stage #heikuai-tex { left: -1px; top: 1189px; width: 2598px; height: 215px; }
+  #stage #heikuai-tex {
+    left: 0; top: 0; width: 2560px; height: 1440px;
+    -webkit-mask: url('icon/_画板版_底面黑块.svg') center / 100% 100% no-repeat;
+    mask: url('icon/_画板版_底面黑块.svg') center / 100% 100% no-repeat;
+    mask-mode: alpha;
+  }
+  #stage #heikuai-tex img { position: absolute; left: -1px; top: 1189px; width: 2598px; height: 215px; }
 
   /* 以下三层按画板1.svg 权威包围盒定位（画板 1280×720 ×2 = 画布 2560×1440） */
   /* 主支撑图像：内容bbox(119,101)-(1981,1312)/2074×1415 → 目标[207,85]-[2322,1499]，纵向有 ~2.7% 拉伸 */
@@ -97,8 +118,10 @@
     <div class="el" id="shanshuo"><img src="icon/随机闪烁亮光_叠加滤镜.svg" alt=""></div>
     <div class="el" id="ring"><img src="icon/_画板版_树内动画圆.svg" alt=""></div>
     <div class="el" id="tree"><img src="icon/_画板版_路径动画树状主体.svg" alt="树"></div>
-    <div class="el" id="dimian"><img src="icon/_画板版_底面黑块.svg" alt=""></div>
-    <div class="el" id="heikuai-tex"><img src="icon/底面黑块渐变渲染.webp" alt=""></div>
+    <div class="el" id="dimian">
+      <img src="icon/_画板版_底面黑块.svg" alt="">
+      <div class="el" id="heikuai-tex"><img src="icon/底面黑块渐变渲染.webp" alt=""></div>
+    </div>
     <div class="el" id="yellowline"><img src="icon/_画板版_地面黑块_额外元素.svg" alt=""></div>
     <div class="el" id="xiala"><img src="icon/_画板版_下拉预备.svg" alt=""></div>
     <div class="el" id="title"><img src="icon/_画板版_rszs.svg" alt="Plastic Tree 熔塑之树"></div>
@@ -114,6 +137,9 @@
     <div class="el" id="label-renyuan"><img src="icon/_画板版_bottom_人员补充.svg" alt="人员补充"></div>
     <div class="el" id="music-pause"><img src="icon/bottom_播放音乐.svg" alt="暂停音乐"></div>
     <div class="el" id="music-play"><img src="icon/bottom_停止播放音乐.svg" alt="播放音乐"></div>
+    <div class="el" id="replay-all" role="button" tabindex="0" aria-label="重新播放所有动画">
+      <img src="icon/bottom_重新播放所有动画.svg" alt="">
+    </div>
   </div>
 
   <div id="loading-screen" role="status" aria-live="polite">
@@ -128,12 +154,16 @@
 <script src="scripts/animation/curves.js"></script>
 <script src="scripts/animation/glow.js"></script>
 <script src="scripts/animation/intro.js"></script>
+<script src="scripts/animation/title_fx.js"></script>
 <script src="scripts/animation/fx.js"></script>
 <script src="scripts/animation/button_fx.js"></script>
 <script src="scripts/animation/start_fx.js"></script>
 <script src="scripts/animation/growth_mask_fx.js"></script>
+<script src="scripts/animation/core_reveal_fx.js"></script>
 <script src="scripts/animation/tree_fx.js"></script>
 <script src="scripts/animation/up_fx.js"></script>
+<script src="scripts/animation/button_reveal_fx.js"></script>
+<script src="scripts/animation/replay_fx.js"></script>
 <script src="scripts/vendor/howler.core.min.js"></script>
 <script src="scripts/animation/music_fx.js?v=a7883f3-r3"></script>
 <script src="scripts/animation/shan_fx.js"></script>

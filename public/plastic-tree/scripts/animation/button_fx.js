@@ -88,12 +88,11 @@
   function playSfx(kind) {
     const url = SFX[kind];
     if (!url) return;
-    if (!window.Howl) return;
     let a = sfxCache[url];
-    if (!a) {
-      a = sfxCache[url] = new Howl({ src: [url], html5: true, preload: 'metadata', volume: SFX.volume });
-    }
-    a.play();
+    if (!a) { a = sfxCache[url] = new Audio(url); a.preload = 'auto'; }
+    const inst = a.paused ? a : a.cloneNode();
+    inst.volume = SFX.volume;
+    inst.play().catch(() => {});   // 自动播放策略拒绝时静默（见上注释）
   }
 
   /* ===== 工具 ===== */
@@ -181,6 +180,12 @@
   };
   function bindHover(host, inBtn, applyState) { // 画布坐标悬停判定（同 fx.js 磁吸原因）
     let hovered = false, pressed = false;
+    window.addEventListener('animations:replay', () => {
+      hovered = false;
+      pressed = false;
+      applyState('default', true);
+      document.body.style.cursor = '';
+    });
     window.addEventListener('pointermove', (e) => {
       const h = inBtn(e.clientX, e.clientY);
       if (h !== hovered) {

@@ -162,12 +162,8 @@
       animate();
     };
     window.whenAppReady(() => {
-      if (window.__shanRevealAnimating) {
-        window.addEventListener('shan:reveal:effect:start', startAnimation, { once: true });
-        window.addEventListener('shan:reveal:done', startAnimation, { once: true });
-      } else {
-        startAnimation();
-      }
+      // 闪烁字符层在树内圆环归位完成后才进入持续闪烁阶段。
+      window.addEventListener('ring:done', startAnimation, { once: true });
     });
   }
 

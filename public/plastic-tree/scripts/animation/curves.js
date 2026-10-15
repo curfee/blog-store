@@ -38,7 +38,8 @@
     { id: 'paixian', wave: false, idle: false, ribbon: false,
       growDur: (TIMING.paixianPathDuration ?? 900) / 1000,
       stagger: (TIMING.paixianStagger ?? 50) / 1000,
-      startDelay: TIMING.paixianStartDelay ?? 400,
+      startDelay: TIMING.paixianStartDelay ?? 0,
+      startEvent: 'ring:done',
       fitTo: [-223, 858, 2711, 1229] }, // 拓展线段：仅生长，时序更快，对齐画板区域
     { id: 'huandong', ribbon: false }, // 缓动线条（地平线）：生长 + 波动
   ];
@@ -222,8 +223,9 @@
         path.style.stroke = 'none';
       }
 
-      paths.push({
+      const pathRecord = {
         path, base: baseArr, local, inv, closed: isClosed, len, rootAtEnd, ribbon, prof,
+        startEvent: cfg.startEvent || null,
         wave: cfg.wave !== false,              // 是否响应鼠标流场/冲击波
         idleAmp: cfg.idle === false ? 0 : IDLE_AMP, // 静止摆动幅度
         growDur: cfg.growDur || GROW_DUR,      // 单层可覆盖生长时长
@@ -233,7 +235,9 @@
         growDelay: 0,                     // 稍后种子洗牌分配
         off: new Float32Array(baseArr.length),   // 物理位移
         vel: new Float32Array(baseArr.length),   // 物理速度
-      });
+      };
+      if (GROW) path.setAttribute('d', '');
+      paths.push(pathRecord);
     });
   }
 
@@ -254,6 +258,7 @@
 
   let last = 0;
   let growT0 = null; // 生长动画起点（首帧时间）
+  const eventStartTimes = new Map();
   function frame(now) {
     const t = now / 1000;
     const dt = Math.min(0.05, last ? (now - last) / 1000 : 0.016);
@@ -347,8 +352,11 @@
       //    丝带路径：中心线 ± 法线×宽度剖面 → 变宽填充多边形
       if (growT0 === null) growT0 = t;
       if (GROW && P.grow < 1) {
-        const u = (t - growT0 - P.growDelay) / P.growDur;
-        P.grow = u <= 0 ? 0 : u >= 1 ? 1 : growEase(u);
+        const layerT0 = P.startEvent ? eventStartTimes.get(P.startEvent) : growT0;
+        if (layerT0 !== undefined) {
+          const u = (t - layerT0 - P.growDelay) / P.growDur;
+          P.grow = u <= 0 ? 0 : u >= 1 ? 1 : growEase(u);
+        }
       }
       const drawN = P.grow >= 1 ? n : Math.max(0, Math.ceil(P.grow * (n - 1)));
       const inv = P.inv;
@@ -456,6 +464,26 @@
       prepPaths(svg, stage, LAYERS[i]);
     });
     assignGrowOrder();
+    // 与四个按钮淡入共用 ring:done，保证按钮动画与覆盖线段在同一事件帧启动。
+    for (const eventName of new Set(paths.map(path => path.startEvent).filter(Boolean))) {
+      window.addEventListener(eventName, () => {
+        if (!eventStartTimes.has(eventName)) eventStartTimes.set(eventName, performance.now() / 1000);
+      });
+    }
+    window.addEventListener('animations:replay', () => {
+      growT0 = null;
+      eventStartTimes.clear();
+      last = 0;
+      frame._grownFired = false;
+      shocks.length = 0;
+      for (const path of paths) {
+        path.grow = GROW ? 0 : 1;
+        path.off.fill(0);
+        path.vel.fill(0);
+        path.path.setAttribute('d', '');
+      }
+      // 曲线动画循环持续运行；下一帧会从新的 growT0 重新绘制。
+    });
     window.whenAppReady(() => { if (paths.length) requestAnimationFrame(frame); });
   });
 })();

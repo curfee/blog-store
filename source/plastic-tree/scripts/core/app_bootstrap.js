@@ -10,7 +10,6 @@
   const assets = [...images, background];
   let fetchStarted = 0, fetchDone = 0, lastNetworkActivity = Date.now();
   let shown = 0, musicReady = false, shanReady = false;
-  let audioLoaded = 0, audioTotal = 0, audioFailed = 0, audioCheckComplete = false;
   let waitingForKey = false, starting = false;
   let releaseReady;
 
@@ -30,14 +29,12 @@
   window.addEventListener('keydown', event => {
     if (!waitingForKey || starting) return;
     event.preventDefault();
-    window.dispatchEvent(new Event('app:starting'));
     event.stopImmediatePropagation();
     startAfterReadyInput();
   }, true);
   window.addEventListener('pointerdown', event => {
     if (!waitingForKey || starting || event.button !== 0) return;
     event.preventDefault();
-    window.dispatchEvent(new Event('app:starting'));
     event.stopImmediatePropagation();
     startAfterReadyInput();
   }, true);
@@ -68,23 +65,11 @@
     });
   };
 
-  window.addEventListener('audio:load-progress', event => {
-    audioLoaded = event.detail?.loaded ?? audioLoaded;
-    audioTotal = event.detail?.total ?? audioTotal;
-    audioFailed = event.detail?.failed ?? audioFailed;
-    update();
-  });
-
   function update() {
     const loaded = assets.filter(image => image.complete).length;
     const imageRatio = assets.length ? loaded / assets.length : 1;
     const fetchRatio = fetchStarted ? fetchDone / fetchStarted : 0;
-    const visualRatio = imageRatio * .72 + fetchRatio * .28;
-    // 未开始音频下载前最多显示 30%；之后进度随音频完成情况增长。
-    const loadRatio = audioTotal
-      ? visualRatio * .3 + (audioLoaded / audioTotal) * .7
-      : Math.min(.3, visualRatio * .3);
-    shown = Math.max(shown, Math.min(94, Math.round(94 * loadRatio)));
+    shown = Math.max(shown, Math.min(94, Math.round(94 * (imageRatio * .72 + fetchRatio * .28))));
     bar.style.width = `${shown}%`;
     percent.textContent = `${shown}%`;
   }
@@ -94,7 +79,6 @@
     image.addEventListener('error', update, { once: true });
   });
   window.addEventListener('music:ready', () => { musicReady = true; }, { once: true });
-  window.addEventListener('audio:check-complete', () => { audioCheckComplete = true; }, { once: true });
   window.addEventListener('shan:ready', () => { shanReady = true; }, { once: true });
   update();
 
@@ -104,14 +88,12 @@
     }
     await Promise.all(assets.map(image => image.decode ? image.decode().catch(() => {}) : Promise.resolve()));
     await document.fonts.ready;
-    while (!musicReady || !shanReady || !audioCheckComplete || fetchDone < fetchStarted || Date.now() - lastNetworkActivity < 700) {
+    while (!musicReady || !shanReady || fetchDone < fetchStarted || Date.now() - lastNetworkActivity < 700) {
       update();
       await new Promise(resolve => setTimeout(resolve, 100));
     }
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-    label.textContent = audioFailed
-      ? `音频加载完毕（${audioFailed} 项失败）· 按任意键继续`
-      : '资源加载完成 · 按任意键继续';
+    label.textContent = '资源加载完成 · 按任意键继续';
     shown = 100;
     bar.style.width = '100%';
     percent.textContent = '100%';

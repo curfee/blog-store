@@ -1,8 +1,8 @@
 /* 向上线条路径生长 + 树内动画圆入场（2026-10-12）
    素材：icon/_画板版_向上线条.svg（12 条描边 path，无渐变；路径全部"起点在上、终点在下"）。
    流程（用户指定）：
-   1. 树状主体生长结束（tree:grown，tree_fx.js 派发；兜底 FALLBACK）后开播
-   2. 12 条 path 一起齐生长（无错峰），dashoffset 法，400ms，
+   1. 树状主体开始生长（tree:grow:start，tree_fx.js 派发；兜底 FALLBACK）时同步开播
+   2. 12 条 path 一起齐生长（无错峰），dashoffset 法，700ms，
       缓动 cubic-bezier(0, 0.824, 0.68, 0.996)
       ——生长方向默认"从根部(下)向梢(上)"：路径作者方向是"上→下"，故用
         offset len→2·len 的反向揭示（growFromBase=true）；改 false 即从上往下画
@@ -15,8 +15,8 @@
   /* ==================== 用户自助调整区（改完刷新即生效） ==================== */
   const TIMING = window.ANIMATION_TIMING?.upFx || {};
   const CFG = {
-    startDelay: TIMING.startDelay ?? 0,             // tree:grown 后再等多久开播
-    growDur: TIMING.growDuration ?? 400,            // 线条一齐生长时长 ms
+    startDelay: TIMING.startDelay ?? 0,             // tree:grow:start 后的额外延迟
+    growDur: TIMING.growDuration ?? 700,            // 线条一齐生长时长 ms
     growEase: [0, 0.824, 0.68, 0.996],    // 生长缓动
     growFromBase: true,                   // true=从根部向上长（反向揭示）；false=从上往下画
     ringDur: TIMING.ringDuration ?? 1200,           // 圆环归位时长 ms
@@ -47,13 +47,17 @@
   }
 
   function playRing() {
-    if (!ring) return;
+    if (!ring) {
+      window.dispatchEvent(new Event('ring:done'));
+      return;
+    }
     const [x1, y1, x2, y2] = CFG.ringEase;
-    ring.animate(
+    const animation = ring.animate(
       [{ transform: `translateY(${CFG.ringDown}px)`, opacity: 0 },
        { transform: 'translateY(0px)', opacity: 1 }],
       { duration: CFG.ringDur, easing: `cubic-bezier(${x1}, ${y1}, ${x2}, ${y2})`, fill: 'forwards' }
     );
+    animation.addEventListener('finish', () => window.dispatchEvent(new Event('ring:done')), { once: true });
   }
 
   async function init() {
@@ -82,14 +86,29 @@
     }
 
     const ease = mkEase(CFG.growEase);
+    let playToken = 0, fallbackTimer = 0;
+    function reset() {
+      playToken++;
+      play.done = false;
+      clearTimeout(fallbackTimer);
+      for (const path of paths) path.el.style.strokeDashoffset = path.len;
+      ring?.getAnimations().forEach(animation => animation.cancel());
+      if (ring) {
+        ring.style.opacity = '0';
+        ring.style.transform = `translateY(${CFG.ringDown}px)`;
+      }
+    }
     function play() {
       if (play.done) return;             // tree:grown 与兜底二选一，全程仅一次
       play.done = true;
+      clearTimeout(fallbackTimer);
+      const token = ++playToken;
       const t0 = performance.now() + CFG.startDelay;
       if (!paths.length) { playRing(); return; }   // 素材失败也要让圆环出场
       const from = CFG.growFromBase ? 1 : 1;       // 隐藏态 offset 系数
       const to = CFG.growFromBase ? 2 : 0;         // 完成态：反向揭示 len→2len / 正向 len→0
       const tick = (now) => {
+        if (token !== playToken) return;
         const u = (now - t0) / CFG.growDur;
         if (u < 1) {
           const k = from + (to - from) * ease(Math.max(0, u));
@@ -97,13 +116,14 @@
           requestAnimationFrame(tick);
         } else {
           for (const p of paths) p.el.style.strokeDashoffset = p.len * to;
-          playRing();                    // 生长结束 → 圆环归位
+          playRing();                    // 生长结束 → 圆环归位，完成后触发 ring:done
         }
       };
       requestAnimationFrame(tick);
     }
-    window.addEventListener('tree:grown', play, { once: true });
-    window.whenAppReady(() => setTimeout(play, CFG.fallback));
+    window.addEventListener('tree:grow:start', play);
+    window.addEventListener('animations:replay', reset);
+    window.whenAppReady(() => { fallbackTimer = setTimeout(play, CFG.fallback); });
   }
 
   window.addEventListener('DOMContentLoaded', init);

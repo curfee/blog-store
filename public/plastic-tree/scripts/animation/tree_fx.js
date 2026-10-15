@@ -10,7 +10,7 @@
   /* ==================== 用户自助调整区（改完刷新即生效） ==================== */
   const TIMING = window.ANIMATION_TIMING?.tree || {};
   const CFG = {
-    START_DELAY: TIMING.startDelay ?? 500,                     // 开播前等待 ms
+    START_DELAY: TIMING.startDelay ?? 0,                       // 收到触发后附加等待 ms
     MS_PER_PX: TIMING.millisecondsPerPixel ?? 1.1,              // 生长速度：每 px 路径耗时 ms
     MIN_DUR: TIMING.minPathDuration ?? 160,                     // 单条最短时长 ms
     MAX_DUR: TIMING.maxPathDuration ?? 900,                     // 单条最长时长 ms
@@ -60,11 +60,25 @@
       const dur = clamp(len * CFG.MS_PER_PX, CFG.MIN_DUR, CFG.MAX_DUR);
       return { el, len, dur, t0: i * (CFG.STAGGER - CFG.TAIL_OVERLAP) };
     });
+    let playToken = 0;
+    function reset() {
+      playToken++;
+      play.done = false;
+      host.style.visibility = 'hidden';
+      for (const path of paths) path.el.style.strokeDashoffset = path.len;
+    }
     function play() {
       if (play.done) return;               // 全程仅播一次
       play.done = true;
+      const token = ++playToken;
       const t0 = performance.now() + CFG.START_DELAY;
+      let startEventSent = false;
       const tick = (now) => {
+        if (token !== playToken) return;
+        if (!startEventSent && now >= t0) {
+          startEventSent = true;
+          window.dispatchEvent(new Event('tree:grow:start'));
+        }
         let grown = true;
         for (const p of paths) {
           const u = (now - t0 - p.t0) / p.dur;
@@ -81,9 +95,10 @@
       };
       requestAnimationFrame(tick);
     }
-    /* 新的 SVG 生长 ASCII 蒙版完成后，再开始树状主体生长。 */
+    /* 在 shan 整段揭示结束前按配置提前启动树状主体。 */
     if (window.__shanRevealDone) play();
-    else window.addEventListener('shan:reveal:done', play, { once: true });
+    window.addEventListener('shan:reveal:tree-start', play);
+    window.addEventListener('animations:replay', reset);
   }
 
   window.addEventListener('DOMContentLoaded', init);
