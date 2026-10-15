@@ -26,6 +26,17 @@
     --loading-percent-size: 11px;
     --loading-percent-color: rgba(255, 255, 255, .62);
     --loading-percent-gap: 9px;
+    --background-halftone-dot-step: 3px;
+    --background-halftone-dot-core: 1px;
+    --background-halftone-dot-mid: 1.6px;
+    --background-halftone-dot-mid-alpha: .5;
+    --background-halftone-dot-edge: 5.5px;
+    --background-mask-reveal-size: 0px;
+  }
+  @property --background-mask-reveal-size {
+    syntax: "<length>";
+    inherits: false;
+    initial-value: 0px;
   }
   body {
     background-image: url('icon/背景图.webp');
@@ -72,6 +83,50 @@
   /* 所有图层均为画板 1:1 抠图（全画布 2560×1440），z 序 = 画板文档顺序 */
   #stage .el { position: absolute; left: 0; top: 0; width: 2560px; height: 1440px; }
   #stage img { display: block; width: 100%; height: 100%; }
+  #stage #ditu {
+    visibility: hidden;
+    opacity: 0;
+    -webkit-mask-image:
+      url('icon/背景底图_mask.svg'),
+      radial-gradient(circle, #000 var(--background-halftone-dot-core), rgba(0, 0, 0, var(--background-halftone-dot-mid-alpha)) var(--background-halftone-dot-mid), transparent var(--background-halftone-dot-edge));
+    -webkit-mask-position: center, center;
+    -webkit-mask-repeat: no-repeat, repeat;
+    -webkit-mask-size: 0 0, var(--background-halftone-dot-step) var(--background-halftone-dot-step);
+    -webkit-mask-composite: source-in;
+    mask-image:
+      url('icon/背景底图_mask.svg'),
+      radial-gradient(circle, #000 var(--background-halftone-dot-core), rgba(0, 0, 0, var(--background-halftone-dot-mid-alpha)) var(--background-halftone-dot-mid), transparent var(--background-halftone-dot-edge));
+    mask-mode: alpha;
+    mask-position: center, center;
+    mask-repeat: no-repeat, repeat;
+    mask-size: 0 0, var(--background-halftone-dot-step) var(--background-halftone-dot-step);
+    mask-composite: intersect;
+    transition: none;
+  }
+  #stage #ditu.is-revealing {
+    visibility: visible;
+    opacity: 1;
+    -webkit-mask-size:
+      var(--background-mask-reveal-size) var(--background-mask-reveal-size),
+      var(--background-halftone-dot-step) var(--background-halftone-dot-step);
+    mask-size:
+      var(--background-mask-reveal-size) var(--background-mask-reveal-size),
+      var(--background-halftone-dot-step) var(--background-halftone-dot-step);
+  }
+  #stage #ditu-smooth {
+    visibility: hidden;
+    opacity: 0;
+    -webkit-mask: url('icon/背景底图_mask.svg') center / 0 0 no-repeat;
+    mask: url('icon/背景底图_mask.svg') center / 0 0 no-repeat;
+    mask-mode: alpha;
+    transition: none;
+  }
+  #stage #ditu-smooth.is-revealing {
+    visibility: visible;
+    opacity: 1;
+    -webkit-mask-size: var(--background-mask-reveal-size) var(--background-mask-reveal-size);
+    mask-size: var(--background-mask-reveal-size) var(--background-mask-reveal-size);
+  }
   #stage #hexin { opacity: 0; }
   #stage #label-jiehuo, #stage #label-yutan,
   #stage #label-renyuan, #stage #label-dangan { opacity: 0; }
@@ -100,12 +155,14 @@
   /* 圆形_颜色淡化滤镜：Affinity「颜色淡化」即 color-dodge；光晕圆心(1300,1194) 半径811，目标[489,383]-[2112,2006] */
   #stage #pinkglow { left: 583.4px; top: 947.6px; width: 1423px; height: 1423px; mix-blend-mode: color-dodge; }
 </style>
-<script src="scripts/config/animation_timing.js"></script>
+<script src="scripts/config/animation_timing.js?v=dual-mask-1"></script>
 <script src="scripts/config/growth_ascii_config.js"></script>
 </head>
 <body>
   <div id="stage">
+    <div class="el" id="ditu-cover"><img src="icon/背景底图_覆盖.webp" alt=""></div>
     <div class="el" id="ditu"><img src="icon/背景底图.webp" alt=""></div>
+    <div class="el" id="ditu-smooth" aria-hidden="true"><img src="icon/背景底图.webp" alt=""></div>
     <div class="el" id="hexin"><img src="icon/_画板版_核心.svg" alt="核心"></div>
     <div class="el" id="paixian"><img src="icon/新_覆盖向下拓展线段.svg" alt=""></div>
     <div class="el" id="canquyuan"><img src="icon/残缺圆.webp" alt=""></div>
@@ -149,7 +206,7 @@
       <div id="loading-percent">0%</div>
     </div>
   </div>
-<script src="scripts/core/app_bootstrap.js"></script>
+<script src="scripts/core/app_bootstrap.js?v=dual-mask-4"></script>
 <script src="scripts/core/stage_fit.js"></script>
 <script src="scripts/animation/curves.js"></script>
 <script src="scripts/animation/glow.js"></script>

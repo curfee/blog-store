@@ -6,6 +6,13 @@ window.ANIMATION_TIMING = {
   loading: {
     fadeDuration: 650,
   },
+  backgroundCover: {
+    startAt: 'T0', // 背景遮罩是主时间线的 T0 动画
+    startDelay: 300, // 从播放/重播开始到 T0 启动的延迟
+    duration: 1400, // 底图遮罩动画时长
+    smoothLayerDelay: 200, // 平滑遮罩层比半调遮罩层晚启动
+    maskScale: 450, // 遮罩边长最终为画布高度的 450%
+  },
   intro: {
     quyuLeftDelay: 1200,
     quyuRightGap: 350,
@@ -83,4 +90,12 @@ window.ANIMATION_TIMING = {
 document.documentElement.style.setProperty(
   '--loading-fade-duration',
   `${window.ANIMATION_TIMING.loading.fadeDuration}ms`
+);
+document.documentElement.style.setProperty(
+  '--background-cover-duration',
+  `${window.ANIMATION_TIMING.backgroundCover.duration}ms`
+);
+document.documentElement.style.setProperty(
+  '--background-mask-size',
+  `${1440 * window.ANIMATION_TIMING.backgroundCover.maskScale / 100}px`
 );
